@@ -1,0 +1,16 @@
+[{
+  "header": "YouTube",
+  "title": "Searched for how to fix my life",
+  "titleUrl": "https://www.youtube.com/results?search_query=how+to+fix+my+life",
+  "time": "2024-03-05T03:31:00.000Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube search history"]
+},{
+  "header": "YouTube",
+  "title": "Searched for cheap mattress",
+  "titleUrl": "https://www.youtube.com/results?search_query=cheap+mattress",
+  "time": "2024-03-04T21:01:00.000Z",
+  "products": ["YouTube"],
+  "details": [{ "name": "From Google Ads" }],
+  "activityControls": ["YouTube search history"]
+}]
