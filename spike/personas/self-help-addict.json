@@ -1,7 +1,7 @@
 {
   "version": 1,
   "source": "takeout",
-  "totals": { "videos": 12650, "channels": 980, "firstWatch": "2022-01-02T07:00:00.000Z", "lastWatch": "2026-10-14T04:12:00.000Z", "spanDays": 1746 },
+  "totals": { "videos": 12650, "channels": 980, "firstWatch": "2022-01-02T07:00:00+00:00", "lastWatch": "2026-10-14T04:12:00+00:00", "spanDays": 1746 },
   "topChannels": [
     { "name": "Ali Abdaal", "count": 1402 },
     { "name": "Matt D'Avella", "count": 1210 },
@@ -30,11 +30,11 @@
     { "period": "2025-Q2", "count": 1900, "topChannels": ["Psych2Go", "Taylor Swift", "Therapy in a Nutshell"], "sampleTitles": ["Signs Your Ex Still Loves You", "All Too Well (10 Minute Version)", "How To Stop Texting Your Ex"] },
     { "period": "2025-Q3", "count": 1300, "topChannels": ["Mel Robbins", "The Diary Of A CEO", "Jay Shetty"], "sampleTitles": ["The 5 Second Rule", "You Are Not Behind In Life", "Healing From A Breakup"] }
   ],
-  "searches": { "total": 2400, "topRepeated": [{ "name": "how to stop procrastinating", "count": 28 }, { "name": "notion template free", "count": 17 }, { "name": "how long does it take to get over someone", "count": 13 }], "lateNight": [{ "query": "how long does it take to get over someone", "time": "2025-04-06T03:12:00.000Z" }, { "query": "how to wake up at 5am", "time": "2025-05-01T04:22:00.000Z" }, { "query": "is it bad to check your ex's instagram", "time": "2025-05-09T02:55:00.000Z" }] },
+  "searches": { "total": 2400, "topRepeated": [{ "name": "how to stop procrastinating", "count": 28 }, { "name": "notion template free", "count": 17 }, { "name": "how long does it take to get over someone", "count": 13 }], "lateNight": [{ "query": "how long does it take to get over someone", "time": "2025-04-06T03:12:00+00:00" }, { "query": "how to wake up at 5am", "time": "2025-05-01T04:22:00+00:00" }, { "query": "is it bad to check your ex's instagram", "time": "2025-05-09T02:55:00+00:00" }] },
   "samples": {
     "latestNight": [
-      { "title": "How To Wake Up At 5AM Every Day", "channel": "Matt D'Avella", "videoId": "d1", "time": "2025-06-10T04:47:00.000Z" },
-      { "title": "5AM Morning Routine (Productive & Healthy)", "channel": "Ali Abdaal", "videoId": "d5", "time": "2025-07-22T04:31:00.000Z" }
+      { "title": "How To Wake Up At 5AM Every Day", "channel": "Matt D'Avella", "videoId": "d1", "time": "2025-06-10T04:47:00+00:00" },
+      { "title": "5AM Morning Routine (Productive & Healthy)", "channel": "Ali Abdaal", "videoId": "d5", "time": "2025-07-22T04:31:00+00:00" }
     ],
     "oneOffs": [
       { "title": "Gordon Ramsay Reacts To Instant Noodles", "channel": "Gordon Ramsay", "videoId": "d6" },

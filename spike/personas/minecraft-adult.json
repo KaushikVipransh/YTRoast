@@ -1,7 +1,7 @@
 {
   "version": 1,
   "source": "takeout",
-  "totals": { "videos": 29880, "channels": 1502, "firstWatch": "2015-03-01T15:00:00.000Z", "lastWatch": "2026-10-10T23:30:00.000Z", "spanDays": 4241 },
+  "totals": { "videos": 29880, "channels": 1502, "firstWatch": "2015-03-01T15:00:00+00:00", "lastWatch": "2026-10-10T23:30:00+00:00", "spanDays": 4241 },
   "topChannels": [
     { "name": "Dream", "count": 2140 },
     { "name": "Technoblade", "count": 1990 },
@@ -29,9 +29,9 @@
     { "period": "2022-Q3", "count": 2800, "topChannels": ["Technoblade", "Philza", "Dream SMP Lore"], "sampleTitles": ["So long nerds", "Technoblade Tribute", "Philza Reads Techno's Letter"] },
     { "period": "2026-Q2", "count": 1900, "topChannels": ["Hermitcraft Highlights", "Grian", "Mumbo Jumbo"], "sampleTitles": ["Hermitcraft Season 11 Episode 1", "I Built A Redstone Computer", "Grian's Base Tour"] }
   ],
-  "searches": { "total": 2010, "topRepeated": [{ "name": "dream face reveal", "count": 21 }, { "name": "how to write a resume", "count": 6 }, { "name": "minecraft 1.22 release date", "count": 5 }], "lateNight": [{ "query": "is it weird to still play minecraft at 28", "time": "2025-09-30T02:12:00.000Z" }] },
+  "searches": { "total": 2010, "topRepeated": [{ "name": "dream face reveal", "count": 21 }, { "name": "how to write a resume", "count": 6 }, { "name": "minecraft 1.22 release date", "count": 5 }], "lateNight": [{ "query": "is it weird to still play minecraft at 28", "time": "2025-09-30T02:12:00+00:00" }] },
   "samples": {
-    "latestNight": [{ "title": "So long nerds", "channel": "Technoblade", "videoId": "c1", "time": "2026-06-30T04:01:00.000Z" }],
+    "latestNight": [{ "title": "So long nerds", "channel": "Technoblade", "videoId": "c1", "time": "2026-06-30T04:01:00+00:00" }],
     "oneOffs": [
       { "title": "How To Ace Your Job Interview", "channel": "LinkedIn Learning", "videoId": "c4" },
       { "title": "Filing Taxes For The First Time", "channel": "Graham Stephan", "videoId": "c5" }

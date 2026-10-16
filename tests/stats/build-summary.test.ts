@@ -36,8 +36,8 @@ test("top channels: count desc, name asc tie-break, null channel excluded", () =
   expect(sum.totals).toEqual({
     videos: 5,
     channels: 3,
-    firstWatch: "2024-01-01T10:00:00.000Z",
-    lastWatch: "2024-01-02T12:00:00.000Z",
+    firstWatch: "2024-01-01T10:00:00+00:00",
+    lastWatch: "2024-01-02T12:00:00+00:00",
     spanDays: 1,
   });
 });
@@ -155,7 +155,7 @@ test("searches: topRepeated count ≥ 2; lateNight = 0–4h, newest first, ≤10
     { name: "ex", count: 2 },
   ]);
   expect(sum.searches?.lateNight).toHaveLength(10);
-  expect(sum.searches?.lateNight[0]).toEqual({ query: "late 11", time: "2024-02-12T04:00:00.000Z" });
+  expect(sum.searches?.lateNight[0]).toEqual({ query: "late 11", time: "2024-02-12T04:00:00+00:00" });
 });
 
 test("samples.latestNight: watches in 0–4h, latest clock time first, ≤5", () => {
@@ -172,7 +172,7 @@ test("samples.latestNight: watches in 0–4h, latest clock time first, ≤5", ()
     [],
   );
   expect(sum.samples.latestNight.map((x) => x.title)).toEqual(["four59", "four", "three", "two", "one"]);
-  expect(sum.samples.latestNight[0]).toEqual({ title: "four59", channel: "c", videoId: null, time: "2024-01-02T04:59:00.000Z" });
+  expect(sum.samples.latestNight[0]).toEqual({ title: "four59", channel: "c", videoId: null, time: "2024-01-02T04:59:00+00:00" });
 });
 
 test("samples.oneOffs: channels watched exactly once, ≤10, evenly spaced through history", () => {
@@ -224,4 +224,41 @@ test("100k entries: < 2000 ms and JSON < 30000 chars", () => {
   const sum = buildTakeoutSummary(big, []);
   expect(performance.now() - t).toBeLessThan(2000);
   expect(JSON.stringify(sum).length).toBeLessThan(30_000);
+});
+
+// Review fix: timestamps sent to the AI must be the user's wall clock, with its offset.
+test("summary times are local wall-clock with offset", () => {
+  const prev = process.env.TZ;
+  process.env.TZ = "Asia/Kolkata";
+  try {
+    const sum = buildTakeoutSummary([w("late one", "c", "2024-03-04T21:42:00Z")], [s("sad query", "2024-03-04T21:43:00Z")]);
+    expect(sum.hours[3]).toBe(1);
+    expect(sum.samples.latestNight[0].time).toBe("2024-03-05T03:12:00+05:30");
+    expect(sum.searches?.lateNight[0].time).toBe("2024-03-05T03:13:00+05:30");
+    expect(sum.totals.firstWatch).toBe("2024-03-05T03:12:00+05:30");
+  } finally {
+    process.env.TZ = prev;
+  }
+});
+
+test("clip never splits an emoji", () => {
+  const title = "a".repeat(118) + "😀" + "b".repeat(10);
+  const sum = buildTakeoutSummary([w(title, "c", "2024-01-01T03:00Z"), w(title, "c", "2024-01-02T03:00Z")], []);
+  const clipped = sum.topRewatched[0].title;
+  expect(clipped.isWellFormed()).toBe(true);
+  expect(clipped.endsWith("…")).toBe(true);
+});
+
+test("100k CJK/emoji entries: summary under 30,000 UTF-8 bytes", () => {
+  const big = Array.from({ length: 100_000 }, (_, i) =>
+    w(
+      `动画视频😀${i % 7000}${"漢字テスト🔥".repeat(40)}`,
+      `频道${"名".repeat(60)}${i % 1900}`,
+      new Date(Date.UTC(2020, 0, 1) + i * 1_800_000).toISOString(),
+      `id${i % 7000}`,
+    ),
+  );
+  const searches = Array.from({ length: 5000 }, (_, i) => s(`搜索${"词".repeat(80)}${i % 40}`, new Date(Date.UTC(2021, 0, 1) + i * 3_600_000).toISOString()));
+  const json = JSON.stringify(buildTakeoutSummary(big, searches));
+  expect(new TextEncoder().encode(json).length).toBeLessThan(30_000);
 });

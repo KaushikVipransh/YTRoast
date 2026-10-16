@@ -1,7 +1,7 @@
 {
   "version": 1,
   "source": "takeout",
-  "totals": { "videos": 18432, "channels": 1204, "firstWatch": "2021-02-03T18:22:10.000Z", "lastWatch": "2026-10-12T03:11:45.000Z", "spanDays": 2077 },
+  "totals": { "videos": 18432, "channels": 1204, "firstWatch": "2021-02-03T18:22:10+00:00", "lastWatch": "2026-10-12T03:11:45+00:00", "spanDays": 2077 },
   "topChannels": [
     { "name": "Jeff Nippard", "count": 1311 },
     { "name": "Mike Israetel | Renaissance Periodization", "count": 1088 },
@@ -31,11 +31,11 @@
     { "period": "2024-Q3", "count": 1440, "topChannels": ["Andrew Tate Clips", "Sam Sulek", "Joe Rogan Clips"], "sampleTitles": ["Top G on Discipline", "Why Most Men Fail", "Bulk Szn Day 140"] },
     { "period": "2024-Q4", "count": 1510, "topChannels": ["More Plates More Dates", "Greg Doucette", "Chris Bumstead"], "sampleTitles": ["Is Sam Sulek Natty?", "Signs You're On Too Much", "CBum Retirement Speech"] }
   ],
-  "searches": { "total": 3110, "topRepeated": [{ "name": "is creatine safe for hair", "count": 14 }, { "name": "how long to see abs", "count": 11 }, { "name": "sam sulek", "count": 9 }], "lateNight": [{ "query": "why am i not losing weight", "time": "2025-03-11T03:44:00.000Z" }, { "query": "how to talk to girls at the gym", "time": "2025-06-02T02:17:00.000Z" }] },
+  "searches": { "total": 3110, "topRepeated": [{ "name": "is creatine safe for hair", "count": 14 }, { "name": "how long to see abs", "count": 11 }, { "name": "sam sulek", "count": 9 }], "lateNight": [{ "query": "why am i not losing weight", "time": "2025-03-11T03:44:00+00:00" }, { "query": "how to talk to girls at the gym", "time": "2025-06-02T02:17:00+00:00" }] },
   "samples": {
     "latestNight": [
-      { "title": "The Smartest Way To Cut (Science Explained)", "channel": "Jeff Nippard", "videoId": "a1", "time": "2025-02-14T04:51:00.000Z" },
-      { "title": "Eating 10,000 Calories In 24 Hours", "channel": "Will Tennyson", "videoId": "a5", "time": "2025-08-02T04:33:00.000Z" }
+      { "title": "The Smartest Way To Cut (Science Explained)", "channel": "Jeff Nippard", "videoId": "a1", "time": "2025-02-14T04:51:00+00:00" },
+      { "title": "Eating 10,000 Calories In 24 Hours", "channel": "Will Tennyson", "videoId": "a5", "time": "2025-08-02T04:33:00+00:00" }
     ],
     "oneOffs": [
       { "title": "Taylor Swift - Lover (Official Music Video)", "channel": "Taylor Swift", "videoId": "a6" },

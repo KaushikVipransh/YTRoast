@@ -33,3 +33,8 @@ test("no thin-data hint when there is plenty of data", () => {
 test("system prompt carries the banned list", () => {
   for (const b of BANNED_PHRASES) expect(SYSTEM_PROMPT.toLowerCase()).toContain(b);
 });
+
+test("system prompt says times are the user's local time and time lines cite the title", () => {
+  expect(SYSTEM_PROMPT).toContain("their local time");
+  expect(SYSTEM_PROMPT).toContain("evidence is the title or search");
+});

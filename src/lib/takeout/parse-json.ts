@@ -1,4 +1,4 @@
-import type { ParseResult, SearchEntry, WatchEntry } from "./types";
+import { TakeoutError, type ParseResult, type SearchEntry, type WatchEntry } from "./types";
 
 type RawEntry = {
   title?: string;
@@ -9,7 +9,7 @@ type RawEntry = {
 };
 
 function isAd(e: RawEntry): boolean {
-  return e.details?.some((d) => d.name === "From Google Ads") ?? false;
+  return Array.isArray(e.details) && e.details.some((d) => d?.name === "From Google Ads");
 }
 
 function parseTime(s: string | undefined): Date | null {
@@ -26,25 +26,36 @@ function urlParam(url: string, key: string): string | null {
   }
 }
 
+/** Throws unreadable-history for corrupt JSON or a non-array; drops entries that are not objects. */
 function readArray(text: string): RawEntry[] {
-  const data: unknown = JSON.parse(text);
-  return Array.isArray(data) ? (data as RawEntry[]) : [];
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new TakeoutError("unreadable-history", []);
+  }
+  if (!Array.isArray(data)) throw new TakeoutError("unreadable-history", []);
+  return data.map((e) => (e && typeof e === "object" ? (e as RawEntry) : {}));
 }
+
+const str = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
 
 export function parseWatchJson(text: string): ParseResult<WatchEntry> {
   const entries: WatchEntry[] = [];
   let skipped = 0;
   for (const e of readArray(text)) {
-    const time = parseTime(e.time);
+    const time = parseTime(str(e.time));
+    const title = str(e.title);
+    const titleUrl = str(e.titleUrl);
     // No titleUrl means the video was removed or made private.
-    if (isAd(e) || !e.titleUrl || !e.title || !time) {
+    if (isAd(e) || !titleUrl || !title || !time) {
       skipped++;
       continue;
     }
     entries.push({
-      title: e.title.replace(/^Watched /, ""),
-      videoId: urlParam(e.titleUrl, "v"),
-      channel: e.subtitles?.[0]?.name || null,
+      title: title.replace(/^Watched /, ""),
+      videoId: urlParam(titleUrl, "v"),
+      channel: str(e.subtitles?.[0]?.name) || null,
       time,
     });
   }
@@ -55,8 +66,9 @@ export function parseSearchJson(text: string): ParseResult<SearchEntry> {
   const entries: SearchEntry[] = [];
   let skipped = 0;
   for (const e of readArray(text)) {
-    const time = parseTime(e.time);
-    const query = (e.titleUrl && urlParam(e.titleUrl, "search_query")) || e.title?.replace(/^Searched for /, "");
+    const time = parseTime(str(e.time));
+    const titleUrl = str(e.titleUrl);
+    const query = (titleUrl && urlParam(titleUrl, "search_query")) || str(e.title)?.replace(/^Searched for /, "");
     if (isAd(e) || !query || !time) {
       skipped++;
       continue;

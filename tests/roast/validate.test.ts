@@ -96,3 +96,17 @@ test("evidence with quotes or backslashes matches raw summary strings", () => {
   const r = validateRoast(roastWith([{ text: 'all that He said "no" \ twice', evidence: 'He said "no" \ twice' }]), s);
   expect(r.problems).toEqual([]);
 });
+
+test("empty or one-character evidence is rejected", () => {
+  const r = validateRoast(
+    roastWith([
+      { text: "you watch too much", evidence: "" },
+      { text: "1 video", evidence: "1" },
+      { text: "all that MrBeast", evidence: "  " },
+    ]),
+    summaryWithChannel("MrBeast"),
+  );
+  expect(r.problems).toContain('line 1: evidence "" too short');
+  expect(r.problems).toContain('line 2: evidence "1" too short');
+  expect(r.problems).toContain('line 3: evidence "  " too short');
+});

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "source": "takeout",
-  "totals": { "videos": 41207, "channels": 2890, "firstWatch": "2019-06-11T22:00:00.000Z", "lastWatch": "2026-10-15T04:40:00.000Z", "spanDays": 2683 },
+  "totals": { "videos": 41207, "channels": 2890, "firstWatch": "2019-06-11T22:00:00+00:00", "lastWatch": "2026-10-15T04:40:00+00:00", "spanDays": 2683 },
   "topChannels": [
     { "name": "Andrew Huberman", "count": 2911 },
     { "name": "Jordan B Peterson", "count": 2402 },
@@ -30,11 +30,11 @@
     { "period": "2024-Q1", "count": 3900, "topChannels": ["Andrew Huberman", "Lex Fridman", "Lofi Girl"], "sampleTitles": ["Master Your Sleep & Be More Alert When Awake", "Dopamine Detox Protocol", "lofi hip hop radio - beats to relax/study to"] },
     { "period": "2024-Q2", "count": 3600, "topChannels": ["Jordan B Peterson", "Ryan Holiday | The Daily Stoic", "Lofi Girl"], "sampleTitles": ["Clean Your Room", "Marcus Aurelius On Discipline", "Why Men Are Lost"] }
   ],
-  "searches": { "total": 6120, "topRepeated": [{ "name": "how to fix sleep schedule", "count": 31 }, { "name": "what is the meaning of life", "count": 12 }, { "name": "does she still think about me", "count": 9 }], "lateNight": [{ "query": "is it normal to feel nothing", "time": "2025-12-03T04:12:00.000Z" }, { "query": "melatonin dose for adults", "time": "2026-01-09T03:58:00.000Z" }, { "query": "does she still think about me", "time": "2026-02-14T02:41:00.000Z" }] },
+  "searches": { "total": 6120, "topRepeated": [{ "name": "how to fix sleep schedule", "count": 31 }, { "name": "what is the meaning of life", "count": 12 }, { "name": "does she still think about me", "count": 9 }], "lateNight": [{ "query": "is it normal to feel nothing", "time": "2025-12-03T04:12:00+00:00" }, { "query": "melatonin dose for adults", "time": "2026-01-09T03:58:00+00:00" }, { "query": "does she still think about me", "time": "2026-02-14T02:41:00+00:00" }] },
   "samples": {
     "latestNight": [
-      { "title": "Master Your Sleep & Be More Alert When Awake", "channel": "Andrew Huberman", "videoId": "b1", "time": "2026-03-07T04:59:00.000Z" },
-      { "title": "How To Wake Up At 5AM", "channel": "Matt D'Avella", "videoId": "b5", "time": "2026-05-21T04:56:00.000Z" }
+      { "title": "Master Your Sleep & Be More Alert When Awake", "channel": "Andrew Huberman", "videoId": "b1", "time": "2026-03-07T04:59:00+00:00" },
+      { "title": "How To Wake Up At 5AM", "channel": "Matt D'Avella", "videoId": "b5", "time": "2026-05-21T04:56:00+00:00" }
     ],
     "oneOffs": [
       { "title": "Skibidi Toilet 1-73 All Episodes", "channel": "DaFuq!?Boom!", "videoId": "b6" },

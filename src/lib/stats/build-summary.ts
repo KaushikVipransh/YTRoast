@@ -1,8 +1,10 @@
 import type { Named, Summary, TitleRef } from "@/lib/summary";
 import type { SearchEntry, WatchEntry } from "@/lib/takeout/types";
-import { localDateKey, quarterKey } from "./time";
+import { localDateKey, localIso, quarterKey } from "./time";
 
 const MAX_TEXT = 120;
+// Byte cap per string keeps the whole Summary under ~30 KB even for CJK/emoji-heavy histories.
+const MAX_TEXT_BYTES = 160;
 const TOP = 10;
 const MAX_ERAS = 12;
 const PER_ERA = 3;
@@ -11,8 +13,29 @@ const LATEST_NIGHT = 5;
 const THIN_DATA_BELOW = 50;
 const DAY_MS = 86_400_000;
 
+const utf8Bytes = (cp: number) => (cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4);
+
+/** Truncates to ≤120 UTF-16 units and ≤160 UTF-8 bytes, ending in "…", never splitting a code point. */
 function clip(s: string): string {
-  return s.length > MAX_TEXT ? s.slice(0, MAX_TEXT - 1) + "…" : s;
+  let units = 0;
+  let bytes = 0;
+  for (const ch of s) {
+    units += ch.length;
+    bytes += utf8Bytes(ch.codePointAt(0)!);
+  }
+  if (units <= MAX_TEXT && bytes <= MAX_TEXT_BYTES) return s;
+
+  let out = "";
+  units = 1; // room for "…"
+  bytes = 3;
+  for (const ch of s) {
+    const b = utf8Bytes(ch.codePointAt(0)!);
+    if (units + ch.length > MAX_TEXT || bytes + b > MAX_TEXT_BYTES) break;
+    out += ch;
+    units += ch.length;
+    bytes += b;
+  }
+  return out + "…";
 }
 
 function ref(w: WatchEntry): TitleRef {
@@ -90,8 +113,8 @@ export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry
     totals: {
       videos: sorted.length,
       channels: channels.size,
-      firstWatch: first ? first.time.toISOString() : null,
-      lastWatch: last ? last.time.toISOString() : null,
+      firstWatch: first ? localIso(first.time) : null,
+      lastWatch: last ? localIso(last.time) : null,
       spanDays: first && last ? Math.floor((last.time.getTime() - first.time.getTime()) / DAY_MS) : 0,
     },
     topChannels: ranked(channels, TOP),
@@ -119,7 +142,7 @@ export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry
       latestNight: nightWatches
         .sort((a, b) => secondsOfDay(b.time) - secondsOfDay(a.time) || b.time.getTime() - a.time.getTime())
         .slice(0, LATEST_NIGHT)
-        .map((w) => ({ ...ref(w), time: w.time.toISOString() })),
+        .map((w) => ({ ...ref(w), time: localIso(w.time) })),
       oneOffs: oneOffs(sorted, channels),
     },
     thinData: sorted.length < THIN_DATA_BELOW,
@@ -146,7 +169,7 @@ function summarizeSearches(searches: SearchEntry[]): Summary["searches"] {
       .filter((s) => isAfterMidnight(s.time))
       .sort((a, b) => b.time.getTime() - a.time.getTime())
       .slice(0, TOP)
-      .map((s) => ({ query: clip(s.query), time: s.time.toISOString() })),
+      .map((s) => ({ query: clip(s.query), time: localIso(s.time) })),
   };
 }
 

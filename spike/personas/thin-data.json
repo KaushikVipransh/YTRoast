@@ -1,7 +1,7 @@
 {
   "version": 1,
   "source": "takeout",
-  "totals": { "videos": 23, "channels": 11, "firstWatch": "2020-04-02T19:00:00.000Z", "lastWatch": "2026-09-30T20:05:00.000Z", "spanDays": 2372 },
+  "totals": { "videos": 23, "channels": 11, "firstWatch": "2020-04-02T19:00:00+00:00", "lastWatch": "2026-09-30T20:05:00+00:00", "spanDays": 2372 },
   "topChannels": [
     { "name": "Vevo", "count": 5 },
     { "name": "How To Basic", "count": 4 },

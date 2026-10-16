@@ -44,6 +44,11 @@ export function validateRoast(out: RoastOutput, summary: Summary): { ok: boolean
     const where = `line ${i + 1}`;
     check(where, line.text);
     const evidence = line.evidence.toLowerCase();
+    // One character (or nothing) matches almost any text, so it proves nothing.
+    if (evidence.trim().length < 2) {
+      problems.push(`${where}: evidence "${line.evidence}" too short`);
+      return;
+    }
     if (!line.text.toLowerCase().includes(evidence)) problems.push(`${where}: evidence "${line.evidence}" not in text`);
     if (!data.includes(evidence)) problems.push(`${where}: evidence "${line.evidence}" not in data`);
   });

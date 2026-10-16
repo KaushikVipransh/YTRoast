@@ -8,7 +8,11 @@ export type ExtractedFiles = { watch: ExtractedFile; search: ExtractedFile | nul
 
 export type ParseResult<T> = { entries: T[]; skipped: number };
 
-export type TakeoutErrorCode = "no-watch-history" | "unreadable-zip";
+/**
+ * no-watch-history: the upload has no watch-history file · unreadable-zip: corrupt zip
+ * unreadable-history: the history file is not valid Takeout JSON · no-entries: parsed, but zero watches
+ */
+export type TakeoutErrorCode = "no-watch-history" | "unreadable-zip" | "unreadable-history" | "no-entries";
 
 export class TakeoutError extends Error {
   readonly code: TakeoutErrorCode;
