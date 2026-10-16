@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "source": "takeout",
+  "totals": { "videos": 12650, "channels": 980, "firstWatch": "2022-01-02T07:00:00.000Z", "lastWatch": "2026-10-14T04:12:00.000Z", "spanDays": 1746 },
+  "topChannels": [
+    { "name": "Ali Abdaal", "count": 1402 },
+    { "name": "Matt D'Avella", "count": 1210 },
+    { "name": "Thomas Frank", "count": 820 },
+    { "name": "The Diary Of A CEO", "count": 790 },
+    { "name": "Mel Robbins", "count": 701 },
+    { "name": "Therapy in a Nutshell", "count": 640 },
+    { "name": "Psych2Go", "count": 590 },
+    { "name": "Taylor Swift", "count": 402 },
+    { "name": "Notion", "count": 290 },
+    { "name": "Jay Shetty", "count": 270 }
+  ],
+  "topRewatched": [
+    { "title": "How To Wake Up At 5AM Every Day", "channel": "Matt D'Avella", "videoId": "d1", "count": 26 },
+    { "title": "How I Plan My Week in Notion", "channel": "Ali Abdaal", "videoId": "d2", "count": 21 },
+    { "title": "Signs Your Ex Still Loves You", "channel": "Psych2Go", "videoId": "d3", "count": 16 },
+    { "title": "All Too Well (10 Minute Version)", "channel": "Taylor Swift", "videoId": "d4", "count": 44 }
+  ],
+  "hours": [700, 690, 650, 610, 520, 140, 90, 120, 200, 300, 400, 420, 500, 480, 510, 520, 560, 600, 700, 800, 900, 1000, 900, 900],
+  "weekdays": [2300, 1500, 1600, 1700, 1650, 1600, 2300],
+  "afterMidnightPct": 25,
+  "lateNights": 702,
+  "longestBinge": { "date": "2025-04-06", "count": 88, "sampleTitles": ["Signs Your Ex Still Loves You", "All Too Well (10 Minute Version)", "How To Stop Texting Your Ex", "Do They Miss You? Psychology Says", "How To Wake Up At 5AM Every Day"] },
+  "eras": [
+    { "period": "2025-Q1", "count": 1500, "topChannels": ["Ali Abdaal", "Notion", "Thomas Frank"], "sampleTitles": ["How I Plan My Week in Notion", "My 2025 Productivity System", "Notion Life OS Template"] },
+    { "period": "2025-Q2", "count": 1900, "topChannels": ["Psych2Go", "Taylor Swift", "Therapy in a Nutshell"], "sampleTitles": ["Signs Your Ex Still Loves You", "All Too Well (10 Minute Version)", "How To Stop Texting Your Ex"] },
+    { "period": "2025-Q3", "count": 1300, "topChannels": ["Mel Robbins", "The Diary Of A CEO", "Jay Shetty"], "sampleTitles": ["The 5 Second Rule", "You Are Not Behind In Life", "Healing From A Breakup"] }
+  ],
+  "searches": { "total": 2400, "topRepeated": [{ "name": "how to stop procrastinating", "count": 28 }, { "name": "notion template free", "count": 17 }, { "name": "how long does it take to get over someone", "count": 13 }], "lateNight": [{ "query": "how long does it take to get over someone", "time": "2025-04-06T03:12:00.000Z" }, { "query": "how to wake up at 5am", "time": "2025-05-01T04:22:00.000Z" }, { "query": "is it bad to check your ex's instagram", "time": "2025-05-09T02:55:00.000Z" }] },
+  "samples": {
+    "latestNight": [
+      { "title": "How To Wake Up At 5AM Every Day", "channel": "Matt D'Avella", "videoId": "d1", "time": "2025-06-10T04:47:00.000Z" },
+      { "title": "5AM Morning Routine (Productive & Healthy)", "channel": "Ali Abdaal", "videoId": "d5", "time": "2025-07-22T04:31:00.000Z" }
+    ],
+    "oneOffs": [
+      { "title": "Gordon Ramsay Reacts To Instant Noodles", "channel": "Gordon Ramsay", "videoId": "d6" },
+      { "title": "how to unsend an instagram message", "channel": "Tech Tips Daily", "videoId": "d7" }
+    ]
+  },
+  "thinData": false
+}

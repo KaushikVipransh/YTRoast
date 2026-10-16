@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "source": "takeout",
+  "totals": { "videos": 23, "channels": 11, "firstWatch": "2020-04-02T19:00:00.000Z", "lastWatch": "2026-09-30T20:05:00.000Z", "spanDays": 2372 },
+  "topChannels": [
+    { "name": "Vevo", "count": 5 },
+    { "name": "How To Basic", "count": 4 },
+    { "name": "Tasty", "count": 3 },
+    { "name": "BBC News", "count": 2 }
+  ],
+  "topRewatched": [{ "title": "Happy Birthday Song", "channel": "Vevo", "videoId": "e1", "count": 4 }],
+  "hours": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 2, 3, 4, 5, 4, 2, 0, 0],
+  "weekdays": [6, 2, 3, 3, 3, 2, 4],
+  "afterMidnightPct": 0,
+  "lateNights": 0,
+  "longestBinge": { "date": "2023-12-25", "count": 4, "sampleTitles": ["Happy Birthday Song", "How To Carve A Turkey", "Christmas Songs Playlist"] },
+  "eras": [{ "period": "2023-Q4", "count": 6, "topChannels": ["Vevo", "Tasty"], "sampleTitles": ["Happy Birthday Song", "How To Carve A Turkey"] }],
+  "searches": { "total": 3, "topRepeated": [], "lateNight": [] },
+  "samples": {
+    "latestNight": [],
+    "oneOffs": [
+      { "title": "How To Reset Your Password", "channel": "Google Help", "videoId": "e2" },
+      { "title": "Easy 3 Ingredient Pancakes", "channel": "Tasty", "videoId": "e3" }
+    ]
+  },
+  "thinData": true
+}

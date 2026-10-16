@@ -34,7 +34,7 @@ export function validateRoast(out: RoastOutput, summary: Summary): { ok: boolean
   const problems: string[] = [];
   const data = collectText(summary).toLowerCase();
 
-  const check = (where: string, text: string | undefined) => {
+  const check = (where: string, text: string | null | undefined) => {
     if (!text) return;
     for (const phrase of findBannedPhrases(text)) problems.push(`${where}: banned "${phrase}"`);
   };

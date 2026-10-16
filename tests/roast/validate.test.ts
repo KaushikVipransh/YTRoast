@@ -28,9 +28,19 @@ function roastWith(lines: RoastOutput["lines"]): RoastOutput {
     lines,
     personality: { label: "THE LURKER", description: "watches, never likes." },
     eras: [],
-    captions: {},
+    captions: emptyCaptions,
   };
 }
+
+const emptyCaptions: RoastOutput["captions"] = {
+  numbers: null,
+  topChannels: null,
+  rewatched: null,
+  clock: null,
+  binge: null,
+  searches: null,
+  contradictions: null,
+};
 
 const sixGoodLines = Array.from({ length: 6 }, (_, i) => ({
   text: `${i} more MrBeast videos and still broke`,
@@ -74,7 +84,7 @@ test("flags banned phrase in captions and personality", () => {
   const roast = {
     ...roastWith(sixGoodLines),
     personality: { label: "X", description: "a true tapestry" },
-    captions: { clock: "it seems like you never sleep" },
+    captions: { ...emptyCaptions, clock: "it seems like you never sleep" },
   };
   const r = validateRoast(roast, summaryWithChannel("MrBeast"));
   expect(r.problems).toContain('personality.description: banned "tapestry"');

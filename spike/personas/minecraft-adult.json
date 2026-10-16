@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "source": "takeout",
+  "totals": { "videos": 29880, "channels": 1502, "firstWatch": "2015-03-01T15:00:00.000Z", "lastWatch": "2026-10-10T23:30:00.000Z", "spanDays": 4241 },
+  "topChannels": [
+    { "name": "Dream", "count": 2140 },
+    { "name": "Technoblade", "count": 1990 },
+    { "name": "Philza", "count": 1201 },
+    { "name": "GeorgeNotFound", "count": 1170 },
+    { "name": "Mumbo Jumbo", "count": 980 },
+    { "name": "Grian", "count": 960 },
+    { "name": "TommyInnit", "count": 702 },
+    { "name": "Hermitcraft Highlights", "count": 655 },
+    { "name": "Dream SMP Lore", "count": 601 },
+    { "name": "LinkedIn Learning", "count": 4 }
+  ],
+  "topRewatched": [
+    { "title": "So long nerds", "channel": "Technoblade", "videoId": "c1", "count": 31 },
+    { "title": "Minecraft Speedrunner VS 5 Hunters FINALE", "channel": "Dream", "videoId": "c2", "count": 22 },
+    { "title": "Dream Face Reveal", "channel": "Dream", "videoId": "c3", "count": 17 }
+  ],
+  "hours": [900, 500, 210, 120, 60, 20, 30, 60, 300, 420, 500, 600, 800, 1200, 1500, 1700, 2100, 2600, 2900, 3100, 3200, 3300, 3000, 2760],
+  "weekdays": [5200, 3900, 3800, 3700, 3800, 4280, 5200],
+  "afterMidnightPct": 6,
+  "lateNights": 140,
+  "longestBinge": { "date": "2022-07-01", "count": 118, "sampleTitles": ["So long nerds", "Technoblade's Best Moments", "Technoblade Tribute", "Philza Reads Techno's Letter", "Never Dies"] },
+  "eras": [
+    { "period": "2020-Q3", "count": 3100, "topChannels": ["Dream", "GeorgeNotFound", "TommyInnit"], "sampleTitles": ["Minecraft Speedrunner VS 5 Hunters FINALE", "Dream SMP: The Whole Story", "Minecraft But Every Block Is Random"] },
+    { "period": "2022-Q3", "count": 2800, "topChannels": ["Technoblade", "Philza", "Dream SMP Lore"], "sampleTitles": ["So long nerds", "Technoblade Tribute", "Philza Reads Techno's Letter"] },
+    { "period": "2026-Q2", "count": 1900, "topChannels": ["Hermitcraft Highlights", "Grian", "Mumbo Jumbo"], "sampleTitles": ["Hermitcraft Season 11 Episode 1", "I Built A Redstone Computer", "Grian's Base Tour"] }
+  ],
+  "searches": { "total": 2010, "topRepeated": [{ "name": "dream face reveal", "count": 21 }, { "name": "how to write a resume", "count": 6 }, { "name": "minecraft 1.22 release date", "count": 5 }], "lateNight": [{ "query": "is it weird to still play minecraft at 28", "time": "2025-09-30T02:12:00.000Z" }] },
+  "samples": {
+    "latestNight": [{ "title": "So long nerds", "channel": "Technoblade", "videoId": "c1", "time": "2026-06-30T04:01:00.000Z" }],
+    "oneOffs": [
+      { "title": "How To Ace Your Job Interview", "channel": "LinkedIn Learning", "videoId": "c4" },
+      { "title": "Filing Taxes For The First Time", "channel": "Graham Stephan", "videoId": "c5" }
+    ]
+  },
+  "thinData": false
+}

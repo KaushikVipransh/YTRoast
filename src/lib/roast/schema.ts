@@ -19,13 +19,13 @@ export const RoastOutputSchema = z.object({
   }),
   eras: z.array(z.object({ period: z.string(), name: z.string() })),
   captions: z.object({
-    numbers: z.string().optional(),
-    topChannels: z.string().optional(),
-    rewatched: z.string().optional(),
-    clock: z.string().optional(),
-    binge: z.string().optional(),
-    searches: z.string().optional(),
-    contradictions: z.string().optional(),
+    numbers: z.string().nullable(),
+    topChannels: z.string().nullable(),
+    rewatched: z.string().nullable(),
+    clock: z.string().nullable(),
+    binge: z.string().nullable(),
+    searches: z.string().nullable(),
+    contradictions: z.string().nullable(),
   }),
 });
 
