@@ -1,51 +1,79 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteNav } from "@/components/SiteNav";
 import { Track } from "@/components/Track";
 import { Uploader } from "@/components/upload/Uploader";
+import { Band } from "@/components/zine/Band";
+import { Display, EvidenceCard } from "@/components/zine/bits";
+import { buttonClass } from "@/components/zine/Button";
+import { Sticker } from "@/components/zine/Sticker";
 import { PRIVACY_LINE } from "@/lib/copy";
 
 export const metadata: Metadata = { title: "Roast me · Caught Watching" };
 
+const STEPS = [
+  <>
+    open google takeout and click <b>deselect all</b>.
+  </>,
+  <>
+    tick <b>youtube and youtube music</b>.
+  </>,
+  <>
+    click <b>all youtube data included</b> and keep only <b>history</b>.
+  </>,
+  <>
+    in <b>multiple formats</b>, set history to <b>json</b> (html works too, json is faster).
+  </>,
+  <>export once, as a .zip. google emails you when it&apos;s ready. go touch grass, we&apos;ll be here.</>,
+  <>come back and drop the zip above.</>,
+];
+
 export default function RoastPage() {
   return (
-    <main className="mx-auto w-full max-w-xl space-y-10 px-4 py-10">
-      <header className="space-y-2">
-        <h1 className="text-4xl font-black uppercase">full roast</h1>
-        <p>your actual watch history. no survivors.</p>
-      </header>
+    <main className="flex-1 overflow-x-clip">
+      <SiteNav current="roast" />
+      <div className="mx-auto max-w-2xl space-y-8 px-4 pb-16 pt-4">
+        <header className="relative space-y-3">
+          <Display size="l">
+            full <span className="hot">roast</span>
+          </Display>
+          <p className="text-xl font-semibold">your actual watch history. no survivors.</p>
+          <div className="absolute -top-2 right-0">
+            <Sticker seed="no-survivors" fill="tangerine">
+              💀
+            </Sticker>
+          </div>
+        </header>
 
-      <Track event="guide_view" />
-      <Uploader />
-      <p className="font-mono text-sm">
-        🔒 {PRIVACY_LINE}{" "}
-        <Link href="/privacy" className="underline">
-          details
-        </Link>
-      </p>
+        <Track event="guide_view" />
+        <Uploader />
+        <p className="font-mono text-sm">
+          🔒 {PRIVACY_LINE}{" "}
+          <Link href="/privacy" className="underline">
+            details
+          </Link>
+        </p>
+      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-black uppercase">get your history from google</h2>
-        <ol className="list-decimal space-y-2 pl-5">
-          <li>
-            open{" "}
-            <a className="underline" href="https://takeout.google.com" target="_blank" rel="noreferrer">
-              google takeout
-            </a>{" "}
-            and click <b>deselect all</b>.
-          </li>
-          <li>
-            tick <b>youtube and youtube music</b>.
-          </li>
-          <li>
-            click <b>all youtube data included</b> and keep only <b>history</b>.
-          </li>
-          <li>
-            in <b>multiple formats</b>, set history to <b>json</b> (html works too, json is faster).
-          </li>
-          <li>export once, as a .zip. google emails you when it&apos;s ready. go touch grass, we&apos;ll be here.</li>
-          <li>come back and drop the zip above.</li>
-        </ol>
-      </section>
+      <Band tone="sky" edge={3}>
+        <section className="mx-auto max-w-2xl space-y-6 px-4 py-14" aria-labelledby="guide">
+          <h2 id="guide" className="display display-l">
+            <span className="alt">get your history from google</span>
+          </h2>
+          <ol className="grid gap-5 sm:grid-cols-2">
+            {STEPS.map((step, i) => (
+              <li key={i}>
+                <EvidenceCard label={`step ${String(i + 1).padStart(2, "0")}`} seed={`guide-${i}`}>
+                  <p>{step}</p>
+                </EvidenceCard>
+              </li>
+            ))}
+          </ol>
+          <a className={buttonClass("primary")} href="https://takeout.google.com" target="_blank" rel="noreferrer">
+            open google takeout ↗
+          </a>
+        </section>
+      </Band>
     </main>
   );
 }
