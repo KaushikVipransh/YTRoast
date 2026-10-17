@@ -20,4 +20,4 @@ test("a failed getDb() is retried on the next call", async () => {
     process.chdir(realCwd);
   }
   await expect(getDb()).resolves.toBeDefined();
-});
+}, 30_000); // boots PGlite twice (~2.5 s each under parallel load); the 5 s default flaked

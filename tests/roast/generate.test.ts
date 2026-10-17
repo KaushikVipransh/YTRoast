@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
-import { defaultChain, generateRoast, repairRoast, type CallFn, type ChainStep } from "@/lib/roast/generate";
+import { defaultChain, generateRoast, problemKinds, repairRoast, type CallFn, type ChainStep } from "@/lib/roast/generate";
 import type { RoastOutput } from "@/lib/roast/schema";
 import { validateRoast } from "@/lib/roast/validate";
 import type { Summary } from "@/lib/summary";
@@ -141,9 +141,9 @@ test("chain moves on when repair fails", async () => {
 
 test("defaultChain: approved order, timeouts and models", () => {
   expect(defaultChain()).toEqual([
-    { generator: "gemini", provider: "gemini", model: "gemini-3.8-flash", timeoutMs: 20_000 },
-    { generator: "gemini-lite", provider: "gemini", model: "gemini-3.1-flash-lite", timeoutMs: 15_000 },
-    { generator: "groq", provider: "groq", model: "openai/gpt-oss-120b", timeoutMs: 15_000 },
+    { generator: "gemini", provider: "gemini", model: "gemini-3.8-flash", timeoutMs: 25_000 },
+    { generator: "gemini-lite", provider: "gemini", model: "gemini-3.1-flash-lite", timeoutMs: 10_000 },
+    { generator: "groq", provider: "groq", model: "openai/gpt-oss-120b", timeoutMs: 10_000 },
   ]);
 });
 
@@ -170,4 +170,16 @@ test("repair: em dashes in headline and personality are fixed, not fatal", () =>
   );
   expect(fixed?.headline).toBe("a gym nerd, no gains");
   expect(fixed?.personality.description).toBe("knows everything, lifts nothing.");
+});
+
+// Production debugging needed this: say what kind of problems, never the user's titles.
+test("problemKinds summarises validator problems without user data", () => {
+  expect(
+    problemKinds([
+      'line 1: evidence "Never Gonna Give You Up" not in text',
+      'line 2: evidence "Secret Title" not in text',
+      'line 3: evidence "x" too short',
+      'headline: banned "journey"',
+    ]),
+  ).toBe("not in text×2, too short×1, banned×1");
 });

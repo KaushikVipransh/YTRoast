@@ -101,13 +101,13 @@ test("empty or one-character evidence is rejected", () => {
   const r = validateRoast(
     roastWith([
       { text: "you watch too much", evidence: "" },
-      { text: "1 video", evidence: "1" },
+      { text: "x marks it", evidence: "x" },
       { text: "all that MrBeast", evidence: "  " },
     ]),
     summaryWithChannel("MrBeast"),
   );
   expect(r.problems).toContain('line 1: evidence "" too short');
-  expect(r.problems).toContain('line 2: evidence "1" too short');
+  expect(r.problems).toContain('line 2: evidence "x" too short');
   expect(r.problems).toContain('line 3: evidence "  " too short');
 });
 
@@ -123,4 +123,15 @@ test("banned word inside the line's own evidence is not flagged", () => {
   expect(ok.problems).toEqual([]);
   const bad = validateRoast(roastWith([{ text: "your journey with Journey - Don't Stop Believin'", evidence: "Journey - Don't Stop Believin'" }]), s);
   expect(bad.problems).toContain('line 1: banned "journey"');
+});
+
+// Production bug (thin histories went to the template): true short numbers were rejected as "too short".
+test("numeric evidence is checked as a number, at any length", () => {
+  const s = summaryWithChannel("MrBeast"); // totals.videos 3, channels 1, MrBeast count 3
+  const ok = validateRoast(roastWith([{ text: "3 videos in total. 3.", evidence: "3" }]), s);
+  expect(ok.problems).toEqual([]);
+  const notInData = validateRoast(roastWith([{ text: "7 videos", evidence: "7" }]), s);
+  expect(notInData.problems).toContain('line 1: evidence "7" not in data');
+  const partOfBiggerNumber = validateRoast(roastWith([{ text: "13 videos", evidence: "3" }]), s);
+  expect(partOfBiggerNumber.problems).toContain('line 1: evidence "3" not in text');
 });

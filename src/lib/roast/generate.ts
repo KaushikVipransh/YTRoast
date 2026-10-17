@@ -14,11 +14,12 @@ const DEADLINE_MS = 45_000;
 const MIN_STEP_MS = 1_000;
 const MIN_LINES = 6;
 
+// Timeouts from production data (2026-10-18): Gemini took 13–20 s (one 20 s timeout), Lite and Groq answer in 3–6 s.
 export function defaultChain(): ChainStep[] {
   return [
-    { generator: "gemini", provider: "gemini", model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash", timeoutMs: 20_000 },
-    { generator: "gemini-lite", provider: "gemini", model: process.env.GEMINI_LITE_MODEL ?? "gemini-3.1-flash-lite", timeoutMs: 15_000 },
-    { generator: "groq", provider: "groq", model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b", timeoutMs: 15_000 },
+    { generator: "gemini", provider: "gemini", model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash", timeoutMs: 25_000 },
+    { generator: "gemini-lite", provider: "gemini", model: process.env.GEMINI_LITE_MODEL ?? "gemini-3.1-flash-lite", timeoutMs: 10_000 },
+    { generator: "groq", provider: "groq", model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b", timeoutMs: 10_000 },
   ];
 }
 
@@ -62,6 +63,16 @@ export function repairRoast(out: RoastOutput, summary: Summary): RoastOutput | n
   return validateRoast(repaired, summary).ok ? repaired : null;
 }
 
+/** "not in text×2, banned×1": the kinds of validator problems, without the evidence (users' titles) in them. */
+export function problemKinds(problems: string[]): string {
+  const counts = new Map<string, number>();
+  for (const p of problems) {
+    const kind = p.match(/(not in text|not in data|too short|banned)/)?.[1] ?? "other";
+    counts.set(kind, (counts.get(kind) ?? 0) + 1);
+  }
+  return [...counts].map(([kind, n]) => `${kind}×${n}`).join(", ");
+}
+
 /** Resolves with the call's result, or rejects when the timeout fires; either way the signal is aborted on timeout. */
 function withTimeout(call: CallFn, step: ChainStep, summary: Summary, ms: number): Promise<RoastOutput> {
   const controller = new AbortController();
@@ -91,7 +102,8 @@ export async function generateRoast(
       const out = await withTimeout(call, step, summary, Math.min(step.timeoutMs, remaining));
       const repaired = repairRoast(out, summary);
       if (repaired) return { roast: repaired, generator: step.generator };
-      console.warn(`[roast] ${step.generator} failed: output did not pass validation`);
+      const kinds = problemKinds(validateRoast(out, summary).problems);
+      console.warn(`[roast] ${step.generator} failed: output did not pass validation (${out.lines.length} lines; ${kinds})`);
     } catch (err) {
       console.warn(`[roast] ${step.generator} failed: ${err instanceof Error ? err.message : String(err)}`);
     }

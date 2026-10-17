@@ -38,3 +38,9 @@ test("system prompt says times are the user's local time and time lines cite the
   expect(SYSTEM_PROMPT).toContain("their local time");
   expect(SYSTEM_PROMPT).toContain("evidence is the title or search");
 });
+
+// Production bug: models wrote exactly 6 lines, so one bad line sank the roast; groq quoted raw JSON.
+test("system prompt asks for 8–10 lines and forbids quoting JSON", () => {
+  expect(SYSTEM_PROMPT).toContain("8 to 10 roast lines");
+  expect(SYSTEM_PROMPT).toContain("never quote json");
+});

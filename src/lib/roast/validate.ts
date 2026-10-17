@@ -44,9 +44,18 @@ function collectText(value: unknown): string {
   return "";
 }
 
+/** Every number value in the summary (counts, percentages, hours…). */
+function collectNumbers(value: unknown, into = new Set<number>()): Set<number> {
+  if (typeof value === "number") into.add(value);
+  else if (Array.isArray(value)) value.forEach((v) => collectNumbers(v, into));
+  else if (value && typeof value === "object") Object.values(value).forEach((v) => collectNumbers(v, into));
+  return into;
+}
+
 export function validateRoast(out: RoastOutput, summary: Summary): { ok: boolean; problems: string[] } {
   const problems: string[] = [];
   const data = collectText(summary).toLowerCase();
+  const numbers = collectNumbers(summary);
 
   const check = (where: string, text: string | null | undefined) => {
     if (!text) return;
@@ -58,6 +67,14 @@ export function validateRoast(out: RoastOutput, summary: Summary): { ok: boolean
     const where = `line ${i + 1}`;
     check(where, withoutEvidence(line.text, line.evidence));
     const evidence = line.evidence.toLowerCase();
+    // A number is checked as a number: it must stand alone in the line and be a real count in the data.
+    // (Thin histories are mostly small numbers, so a length rule would reject true lines.)
+    if (/^\d+$/.test(evidence.trim())) {
+      const n = evidence.trim();
+      if (!new RegExp(`(?<!\\d)${n}(?!\\d)`).test(line.text)) problems.push(`${where}: evidence "${line.evidence}" not in text`);
+      if (!numbers.has(Number(n))) problems.push(`${where}: evidence "${line.evidence}" not in data`);
+      return;
+    }
     // One character (or nothing) matches almost any text, so it proves nothing.
     if (evidence.trim().length < 2) {
       problems.push(`${where}: evidence "${line.evidence}" too short`);
