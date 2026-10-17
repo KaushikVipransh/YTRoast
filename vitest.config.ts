@@ -10,7 +10,7 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        test: { name: "unit", include: ["tests/**/*.test.ts"], exclude: ["tests/perf/**"], sequence: { groupOrder: 0 } },
+        test: { name: "unit", include: ["tests/**/*.test.{ts,tsx}"], exclude: ["tests/perf/**"], sequence: { groupOrder: 0 } },
       },
       {
         // 100k-entry tests need hundreds of MB each; running them in parallel with everything else pages to disk.

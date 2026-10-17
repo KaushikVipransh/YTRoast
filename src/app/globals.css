@@ -12,6 +12,8 @@
   --leaf: #93c572;
   --brick: #d9583b;
   --marker: #e2362b;
+
+  --outline-w: 3px;
 }
 
 @theme inline {
@@ -22,12 +24,103 @@
   --color-sky: var(--sky);
   --color-butter: var(--butter);
   --color-tangerine: var(--tangerine);
+  --color-leaf: var(--leaf);
+  --color-brick: var(--brick);
   --color-marker: var(--marker);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-display: var(--nf-display);
+  --font-ui: var(--nf-ui);
+  --font-body: var(--nf-body);
+  --font-marker: var(--nf-marker);
+  --font-mono: var(--nf-mono);
+  --font-sans: var(--nf-body);
+
+  --shadow-hard: 5px 5px 0 var(--ink);
+  --shadow-press: 2px 2px 0 var(--ink);
 }
 
 body {
-  background: var(--paper);
+  background-color: var(--paper);
   color: var(--ink);
+  font-family: var(--nf-body), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Visible focus everywhere (design Part 8). */
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* The signature display treatment: fill + thick ink outline + hard extrude. */
+.display {
+  font-family: var(--nf-display), Impact, sans-serif;
+  color: var(--sky);
+  -webkit-text-stroke: var(--outline-w) var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--ink);
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+.display .alt {
+  color: var(--butter);
+}
+.display .hot {
+  color: var(--marker);
+}
+.display-xl {
+  font-size: clamp(48px, 13vw, 120px);
+}
+.display-l {
+  font-size: clamp(32px, 8.5vw, 64px);
+}
+
+.label {
+  font-family: var(--nf-ui), sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Paper grain: inline SVG noise, multiplied over the page. */
+.grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.16 0 0 0 0 0.27 0 0 0 0.18 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+/* Faint graph paper (design Part 3 texture kit). */
+.graph-paper {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 8%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spin-slow {
+    animation: spin 30s linear infinite;
+  }
+  .spin-reel {
+    animation: spin 1.6s linear infinite;
+  }
+  .wiggle {
+    animation: wiggle 0.5s ease-in-out infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
 }
