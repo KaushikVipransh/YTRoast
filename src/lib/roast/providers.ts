@@ -32,14 +32,21 @@ function modelFor(provider: ProviderName, modelId?: string) {
 }
 
 /** Throws when the provider refuses, errors, or returns output that fails the schema. */
-export async function generateRoastWith(provider: ProviderName, summary: Summary, modelId?: string): Promise<RoastOutput> {
+/** With a signal (the generation chain), retries are off: the chain owns retries and timeouts. */
+export async function generateRoastWith(
+  provider: ProviderName,
+  summary: Summary,
+  modelId?: string,
+  signal?: AbortSignal,
+): Promise<RoastOutput> {
   const { output } = await generateText({
     model: modelFor(provider, modelId),
     instructions: SYSTEM_PROMPT,
     prompt: buildRoastPrompt(summary),
     output: Output.object({ schema: RoastOutputSchema }),
     temperature: 1,
-    maxRetries: 1,
+    maxRetries: signal ? 0 : 1,
+    abortSignal: signal,
     providerOptions:
       provider === "gemini"
         ? { google: { safetySettings: GEMINI_SAFETY_OFF, thinkingConfig: { thinkingLevel: geminiThinking() } } }
