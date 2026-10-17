@@ -183,3 +183,51 @@ test("problemKinds summarises validator problems without user data", () => {
     ]),
   ).toBe("not in text×2, too short×1, banned×1");
 });
+
+// Phase 5: provider budgets and quota cooldowns.
+function fakeGate(blocked: string[] = []) {
+  const log: string[] = [];
+  return {
+    log,
+    gate: {
+      canUse: async (g: string) => !blocked.includes(g),
+      recordCall: async (g: string) => void log.push(`call:${g}`),
+      recordQuotaError: async (g: string) => void log.push(`quota:${g}`),
+    },
+  };
+}
+
+test("gate: blocked gemini is skipped without a call", async () => {
+  const { gate } = fakeGate(["gemini"]);
+  const called: string[] = [];
+  const r = await generateRoast(summary, { chain, gate, call: async (step) => (called.push(step.generator), goodRoast()) });
+  expect(called).toEqual(["gemini-lite"]);
+  expect(r).toMatchObject({ generator: "gemini-lite", ovenFull: false });
+});
+
+test("gate: every call recorded; quota-style errors start a cooldown", async () => {
+  const { gate, log } = fakeGate();
+  await generateRoast(summary, {
+    chain,
+    gate,
+    call: async (step) => {
+      if (step.generator === "gemini") throw new Error("You exceeded your current quota");
+      if (step.generator === "gemini-lite") throw new Error("timed out");
+      return goodRoast();
+    },
+  });
+  expect(log).toEqual(["call:gemini", "quota:gemini", "call:gemini-lite", "call:groq"]);
+});
+
+test("gate: everything blocked → template, ovenFull, zero calls", async () => {
+  const { gate } = fakeGate(["gemini", "gemini-lite", "groq"]);
+  let calls = 0;
+  const r = await generateRoast(summary, { chain, gate, call: async () => (calls++, goodRoast()) });
+  expect(r).toMatchObject({ generator: "template", ovenFull: true });
+  expect(calls).toBe(0);
+});
+
+test("all steps fail → ovenFull true", async () => {
+  const r = await generateRoast(summary, { chain, gate: fakeGate().gate, call: async () => { throw new Error("boom"); } });
+  expect(r.ovenFull).toBe(true);
+});

@@ -18,6 +18,8 @@
     "@ai-sdk/google": "^4.0.98",
     "@ai-sdk/groq": "^4.0.62",
     "@electric-sql/pglite": "^0.5.10",
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0",
     "ai": "^7.0.142",
     "comlink": "^4.4.2",
     "drizzle-orm": "^0.45.4",

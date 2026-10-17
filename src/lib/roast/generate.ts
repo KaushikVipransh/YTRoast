@@ -1,6 +1,8 @@
 // The roast generation chain (approved 2026-10-17, docs/superpowers/specs/2026-10-17-spike-decision.md):
 // Gemini 3.8 Flash → Gemini 3.1 Flash-Lite → Groq gpt-oss-120b → template. The user always gets a roast.
 import type { Summary } from "@/lib/summary";
+import { QUOTA_ERROR, defaultBudgets, makeProviderGate, openGate, type ProviderGate } from "@/lib/limits/budget";
+import { getStore } from "@/lib/limits/limiter";
 import { generateRoastWith, type ProviderName } from "./providers";
 import type { RoastOutput } from "./schema";
 import { generateTemplateRoast } from "./templates";
@@ -86,27 +88,42 @@ function withTimeout(call: CallFn, step: ChainStep, summary: Summary, ms: number
   return Promise.race([call(step, summary, controller.signal), timeout]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * ovenFull is true when the user got a template because no AI could answer (all skipped by budget or
+ * cooldown, or all failed): the page then says we're at capacity.
+ */
 export async function generateRoast(
   summary: Summary,
-  opts: { chain?: ChainStep[]; call?: CallFn; deadlineMs?: number } = {},
-): Promise<{ roast: RoastOutput; generator: Generator }> {
-  if (process.env.ROAST_GENERATOR === "template") return { roast: generateTemplateRoast(summary), generator: "template" };
+  opts: { chain?: ChainStep[]; call?: CallFn; deadlineMs?: number; gate?: ProviderGate } = {},
+): Promise<{ roast: RoastOutput; generator: Generator; ovenFull: boolean }> {
+  if (process.env.ROAST_GENERATOR === "template") {
+    return { roast: generateTemplateRoast(summary), generator: "template", ovenFull: false };
+  }
 
   const call = opts.call ?? defaultCall;
+  // Budgets protect the real providers; an injected call (tests, scripts) isn't one unless a gate is given.
+  const gate = opts.gate ?? (opts.call ? openGate : makeProviderGate(getStore(), defaultBudgets()));
   const deadline = Date.now() + (opts.deadlineMs ?? DEADLINE_MS);
 
   for (const step of opts.chain ?? defaultChain()) {
     const remaining = deadline - Date.now();
     if (remaining < Math.min(MIN_STEP_MS, step.timeoutMs)) break;
+    if (!(await gate.canUse(step.generator))) {
+      console.warn(`[roast] ${step.generator} skipped: daily budget used or cooling down`);
+      continue;
+    }
+    await gate.recordCall(step.generator);
     try {
       const out = await withTimeout(call, step, summary, Math.min(step.timeoutMs, remaining));
       const repaired = repairRoast(out, summary);
-      if (repaired) return { roast: repaired, generator: step.generator };
+      if (repaired) return { roast: repaired, generator: step.generator, ovenFull: false };
       const kinds = problemKinds(validateRoast(out, summary).problems);
       console.warn(`[roast] ${step.generator} failed: output did not pass validation (${out.lines.length} lines; ${kinds})`);
     } catch (err) {
-      console.warn(`[roast] ${step.generator} failed: ${err instanceof Error ? err.message : String(err)}`);
+      const message = err instanceof Error ? err.message : String(err);
+      if (QUOTA_ERROR.test(message)) await gate.recordQuotaError(step.generator);
+      console.warn(`[roast] ${step.generator} failed: ${message}`);
     }
   }
-  return { roast: generateTemplateRoast(summary), generator: "template" };
+  return { roast: generateTemplateRoast(summary), generator: "template", ovenFull: true };
 }
