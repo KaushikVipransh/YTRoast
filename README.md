@@ -26,6 +26,8 @@ GEMINI_LITE_MODEL=gemini-3.1-flash-lite
 GEMINI_THINKING=low
 GROQ_MODEL=openai/gpt-oss-120b
 DATABASE_URL=pglite://memory  # in-memory Postgres for local dev; a Supabase URL in production
+SUPABASE_POOLER_URL=...       # transaction pooler (6543): becomes DATABASE_URL on Vercel
+SUPABASE_SESSION_URL=...      # session pooler (5432): for pnpm db:migrate only
 # ROAST_GENERATOR=template    # skip the AI entirely (offline dev)
 # NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
@@ -50,7 +52,7 @@ Then run `pnpm dev`. With `pglite://memory`, the data resets whenever the dev se
 1. **Supabase:** create a free project. Copy two connection strings:
    - the **transaction pooler** URL (port 6543), for the app's `DATABASE_URL`
    - the **session or direct** URL, for migrations
-2. **Migrate:** run `DATABASE_URL="<session url>" pnpm db:migrate`.
+2. **Migrate:** run `DATABASE_URL="<SUPABASE_SESSION_URL>" pnpm db:migrate`. Don't point `DATABASE_URL` in `.env.local` at Supabase, or `pnpm dev` writes test roasts into production.
 3. **Vercel:** import the GitHub repo and set the env vars:
    - everything from `.env.local` above, but with the pooler `DATABASE_URL`
    - `NEXT_PUBLIC_SITE_URL=https://<project>.vercel.app`
