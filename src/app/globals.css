@@ -1,26 +1,33 @@
 @import "tailwindcss";
 
+/* Design tokens (docs/superpowers/specs/2026-10-17-design.md, Part 3). Light only: the paper metaphor has no dark mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f4ee;
+  --paper-shade: #e9e4d8;
+  --ink: #1f2a44;
+  --ink-soft: #4a5470;
+  --sky: #5aa9d6;
+  --butter: #f3d66b;
+  --tangerine: #ee9a5c;
+  --leaf: #93c572;
+  --brick: #d9583b;
+  --marker: #e2362b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-paper-shade: var(--paper-shade);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-sky: var(--sky);
+  --color-butter: var(--butter);
+  --color-tangerine: var(--tangerine);
+  --color-marker: var(--marker);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
 }
