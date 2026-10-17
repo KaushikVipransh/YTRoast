@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed, Bowlby_One, Permanent_Marker, Space_Mono } from "next/font/google";
+import { MotionRoot } from "@/components/MotionRoot";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${ui.variable} ${body.variable} ${marker.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        {children}
-        <SiteFooter />
+        <MotionRoot>
+          {children}
+          <SiteFooter />
+        </MotionRoot>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { seededTilt } from "@/lib/zine/tilt";
 
@@ -19,12 +19,11 @@ export function Sticker({
   className?: string;
 }) {
   const tilt = seededTilt(seed, 12);
-  const reduce = useReducedMotion();
   return (
     <motion.span
       aria-hidden="true"
       className={`label inline-block rounded-md border-[3px] border-ink px-3 py-1 text-base text-ink shadow-[0_0_0_4px_white,0_7px_0_0_rgba(31,42,68,0.25)] ${FILLS[fill]} ${className}`}
-      initial={reduce ? false : { scale: 0, rotate: 0 }}
+      initial={{ scale: 0, rotate: 0 }}
       animate={{ scale: 1, rotate: tilt }}
       style={{ rotate: tilt }}
       transition={{ type: "spring", stiffness: 420, damping: 14 }}

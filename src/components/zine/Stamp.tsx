@@ -12,7 +12,10 @@ export function Stamp({ text, center, className = "" }: { text: string; center: 
         <circle cx="50" cy="50" r="48" fill="var(--paper)" stroke="var(--ink)" strokeWidth="3" />
         <circle cx="50" cy="50" r="27" fill="var(--butter)" stroke="var(--ink)" strokeWidth="3" />
         <text fill="var(--marker)" style={{ font: "800 10.5px var(--nf-ui)", letterSpacing: "0.12em" }}>
-          <textPath href={`#${id}`}>{text}</textPath>
+          {/* textLength fits the phrase exactly once around the ring (circumference ≈ 232) */}
+          <textPath href={`#${id}`} textLength="228" lengthAdjust="spacingAndGlyphs">
+            {text}
+          </textPath>
         </text>
       </svg>
       <span className="relative text-2xl">{center}</span>
