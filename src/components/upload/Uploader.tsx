@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type DragEvent } from "react";
+import { bucket, track } from "@/lib/analytics";
 import { processInWorker } from "@/lib/takeout/client";
 import { errorMessage } from "@/lib/takeout/messages";
 import { uploadErrorMessage } from "@/lib/upload-messages";
@@ -37,10 +38,17 @@ export function Uploader() {
     // One roast at a time: drops while busy are ignored, so a double drop can't create two roasts.
     if (!file || busy) return;
     setState({ kind: "reading" });
+    track("upload_started");
 
     const result = await processInWorker(file).catch(() => null);
-    if (!result) return setState({ kind: "error", message: errorMessage("unknown", []) });
-    if (!result.ok) return setState({ kind: "error", message: errorMessage(result.code, result.found) });
+    if (!result) {
+      track("upload_failed", { code: "unknown" });
+      return setState({ kind: "error", message: errorMessage("unknown", []) });
+    }
+    if (!result.ok) {
+      track("upload_failed", { code: result.code });
+      return setState({ kind: "error", message: errorMessage(result.code, result.found) });
+    }
 
     setTick(0);
     setState({ kind: "roasting", videos: result.counts.videos, channels: result.counts.channels });
@@ -50,8 +58,12 @@ export function Uploader() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(result.summary),
       });
-      if (res.status !== 201) return setState({ kind: "error", message: uploadErrorMessage(res.status) });
-      const { id } = (await res.json()) as { id: string };
+      if (res.status !== 201) {
+        track("upload_failed", { status: res.status });
+        return setState({ kind: "error", message: uploadErrorMessage(res.status) });
+      }
+      const { id, ovenFull } = (await res.json()) as { id: string; ovenFull: boolean };
+      track("roast_created", { ovenFull, videos: bucket(result.counts.videos) });
       router.push(`/r/${id}`);
     } catch {
       setState({ kind: "error", message: uploadErrorMessage(0) });

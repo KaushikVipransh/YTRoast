@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 type Props = {
   id: string;
@@ -34,6 +35,7 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
   async function toggleShare() {
     const next = visibility === "private" ? "public" : "private";
     if (await call(`/api/roast/${id}`, { method: "PATCH", body: JSON.stringify({ visibility: next }) })) {
+      track(next === "public" ? "roast_shared" : "roast_unshared");
       setNote(next === "public" ? "it's public. send it." : "private again. only you can see it.");
       router.refresh();
     }
@@ -54,11 +56,17 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
   }
 
   async function sendFeedback(value: -1 | 1) {
-    if (await call(`/api/roast/${id}/feedback`, { method: "POST", body: JSON.stringify({ value }) })) setVote(value);
+    if (await call(`/api/roast/${id}/feedback`, { method: "POST", body: JSON.stringify({ value }) })) {
+      setVote(value);
+      track("feedback", { value });
+    }
   }
 
   async function burn() {
-    if (await call(`/api/roast/${id}`, { method: "DELETE" })) router.refresh();
+    if (await call(`/api/roast/${id}`, { method: "DELETE" })) {
+      track("roast_deleted");
+      router.refresh();
+    }
   }
 
   return (

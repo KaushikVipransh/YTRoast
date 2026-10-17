@@ -18,6 +18,7 @@
     "@ai-sdk/google": "^4.0.98",
     "@ai-sdk/groq": "^4.0.62",
     "@electric-sql/pglite": "^0.5.10",
+    "@sentry/nextjs": "^11.8.0",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
     "ai": "^7.0.142",
@@ -28,6 +29,7 @@
     "nanoid": "^6.0.2",
     "next": "16.4.2",
     "postgres": "^3.4.9",
+    "posthog-js": "^1.438.12",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.7"

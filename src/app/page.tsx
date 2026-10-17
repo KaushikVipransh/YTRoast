@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Track } from "@/components/Track";
 import { PRIVACY_LINE } from "@/lib/copy";
 
 export default function Home() {
@@ -12,6 +13,7 @@ export default function Home() {
         roast me
       </Link>
       <p className="font-mono text-sm">🔒 {PRIVACY_LINE}</p>
+      <Track event="landing_view" />
     </main>
   );
 }

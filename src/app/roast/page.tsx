@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Track } from "@/components/Track";
 import { Uploader } from "@/components/upload/Uploader";
 import { PRIVACY_LINE } from "@/lib/copy";
 
@@ -13,6 +14,7 @@ export default function RoastPage() {
         <p>your actual watch history. no survivors.</p>
       </header>
 
+      <Track event="guide_view" />
       <Uploader />
       <p className="font-mono text-sm">
         🔒 {PRIVACY_LINE}{" "}

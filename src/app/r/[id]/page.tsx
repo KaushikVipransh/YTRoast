@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { BurnedView } from "@/components/roast/BurnedView";
 import { OwnerControls } from "@/components/roast/OwnerControls";
+import { RoastMeNext } from "@/components/RoastMeNext";
+import { Track } from "@/components/Track";
 import { ReportView } from "@/components/roast/ReportView";
 import { RoastView } from "@/components/roast/RoastView";
 import { getDb } from "@/lib/db/client";
@@ -75,11 +76,10 @@ async function RoastPage({ params }: Props) {
       <ReportView summary={view.summary} roast={view.roast} />
 
       {!view.isOwner && (
-        <div className="fixed inset-x-0 bottom-0 border-t-2 border-ink bg-butter p-4 text-center">
-          <Link href="/roast" className="text-lg font-black uppercase">
-            roast me next →
-          </Link>
-        </div>
+        <>
+          <Track event="shared_view" />
+          <RoastMeNext />
+        </>
       )}
     </main>
   );
