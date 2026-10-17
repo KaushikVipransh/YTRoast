@@ -42,7 +42,7 @@ test("upload → private roast → share → secret link → burn", async ({ pag
 
   // The secret link gives ownership back on a fresh browser.
   const secretLink = (await page.getByTestId("secret-link").textContent())!.trim();
-  expect(secretLink).toMatch(//claim#key=[A-Za-z0-9_-]{43}$/); // key in the fragment: never sent to the server
+  expect(secretLink).toMatch(/\/claim#key=[A-Za-z0-9_-]{43}$/); // key in the fragment: never sent to the server
   const rescuedContext = await browser.newContext();
   const rescued = await rescuedContext.newPage();
   await rescued.goto(secretLink);
