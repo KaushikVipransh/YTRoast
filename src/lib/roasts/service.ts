@@ -88,3 +88,9 @@ export function deleteRoast(db: Db, id: string, ownerToken: string | null): Prom
 export function setFeedback(db: Db, id: string, ownerToken: string | null, value: -1 | 1): Promise<OwnerResult> {
   return asOwner(db, id, ownerToken, () => db.update(roasts).set({ feedback: value }).where(live(id)));
 }
+
+/** True when the token owns this live roast (used by the secret "claim" link). */
+export async function isRoastOwner(db: Db, id: string, ownerToken: string): Promise<boolean> {
+  const row = await findRow(db, id);
+  return !!row && !row.deletedAt && isOwner(row, ownerToken);
+}
