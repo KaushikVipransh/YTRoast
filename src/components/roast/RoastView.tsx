@@ -1,3 +1,4 @@
+import { templateNotice } from "@/lib/copy";
 import type { Generator } from "@/lib/roast/generate";
 import type { RoastOutput } from "@/lib/roast/schema";
 
@@ -19,7 +20,11 @@ export function RoastView({ roast, generator }: { roast: RoastOutput; generator:
     <section aria-labelledby="verdict">
       <p className="text-sm font-bold uppercase tracking-wide">the verdict</p>
       {generator === "template" && (
-        <p className="mt-2 inline-block border-2 border-ink px-2 text-xs font-bold uppercase">template roast</p>
+        <div className="mt-2 space-y-2">
+          <p className="inline-block -rotate-2 border-2 border-ink bg-butter px-2 font-black uppercase">we&apos;re at capacity</p>
+          <p className="text-sm">{templateNotice()}</p>
+          <p className="inline-block border-2 border-ink px-2 text-xs font-bold uppercase">template roast</p>
+        </div>
       )}
       <h1 id="verdict" className="mt-2 text-3xl font-black uppercase leading-tight">
         {roast.headline}
