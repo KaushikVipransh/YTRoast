@@ -46,3 +46,7 @@ next-env.d.ts
 spike/out/
 spike/summaries/real-*
 .superpowers/
+
+# playwright
+/test-results/
+/playwright-report/
