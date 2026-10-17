@@ -21,3 +21,10 @@ test("a failed getDb() is retried on the next call", async () => {
   }
   await expect(getDb()).resolves.toBeDefined();
 }, 30_000); // boots PGlite twice (~2.5 s each under parallel load); the 5 s default flaked
+
+// Phase 5 (review M8): an in-memory database in production would silently lose every roast.
+test("pglite is refused in production", () => {
+  vi.stubEnv("VERCEL_ENV", "production");
+  vi.stubEnv("DATABASE_URL", "pglite://memory");
+  expect(() => getDb()).toThrow("pglite is not allowed in production");
+});

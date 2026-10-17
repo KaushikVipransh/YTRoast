@@ -99,11 +99,14 @@ export async function handleFeedback(req: Request, id: string, deps: Pick<Deps, 
   return respond(await setFeedback(deps.db, id, token(req, id), value));
 }
 
-/** The secret link `/r/<id>/claim?key=<token>` restores ownership on a new browser. */
+/**
+ * The secret link is /r/<id>/claim#key=<token>. The key lives in the URL fragment, so it never reaches
+ * server logs or Referer headers; the claim page POSTs it here to restore ownership on a new browser.
+ */
 export async function handleClaim(req: Request, id: string, deps: Pick<Deps, "db">): Promise<Response> {
-  const url = new URL(req.url);
-  const key = url.searchParams.get("key");
-  const headers = new Headers({ location: new URL(`/r/${id}`, url).toString() });
-  if (key && (await isRoastOwner(deps.db, id, key))) headers.set("set-cookie", ownerCookie(id, key));
-  return new Response(null, { status: 307, headers });
+  const body = await readJson(req);
+  if (body instanceof Response) return body;
+  const key = (body.value as { key?: unknown } | null)?.key;
+  if (typeof key !== "string" || !key || !(await isRoastOwner(deps.db, id, key))) return notFound();
+  return json({ ok: true }, 200, { "set-cookie": ownerCookie(id, key) });
 }

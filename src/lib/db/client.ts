@@ -32,6 +32,8 @@ export function getDb(): Promise<Db> {
   if (!cache.__cwDb) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL is not set");
+    // An in-memory database on Vercel would keep roasts per instance and lose them on every cold start.
+    if (url.startsWith("pglite:") && process.env.VERCEL_ENV === "production") throw new Error("pglite is not allowed in production");
     cache.__cwDb = (url.startsWith("pglite:") ? createPgliteDb() : createPostgresDb(url)).catch((err: unknown) => {
       // Don't cache a failure: the next request gets a fresh attempt instead of a bricked instance.
       cache.__cwDb = undefined;

@@ -68,7 +68,7 @@ async function RoastPage({ params }: Props) {
           visibility={view.visibility}
           feedback={view.feedback}
           shareUrl={shareUrl}
-          secretLink={`${shareUrl}/claim?key=${token}`}
+          secretLink={`${shareUrl}/claim#key=${token}`}
         />
       )}
 

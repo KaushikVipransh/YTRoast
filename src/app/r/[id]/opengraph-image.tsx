@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { connection } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { ogHeadline } from "@/lib/roasts/og";
 import { getRoastView } from "@/lib/roasts/service";
@@ -23,6 +24,7 @@ function fontSize(text: string): number {
 }
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  await connection(); // roast state changes at any time; never prerender or cache this image
   const { id } = await params;
   // Same rule as the page: only a public roast's headline may appear in a preview.
   const headline = ogHeadline(await getRoastView(await getDb(), id, null)) ?? "YOUR YOUTUBE HISTORY IS EVIDENCE.";

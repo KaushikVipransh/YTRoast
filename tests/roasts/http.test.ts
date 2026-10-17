@@ -121,24 +121,25 @@ test("feedback: owner can vote; invalid value → 400", async () => {
   expect((await handleFeedback(withCookie(cookie, { method: "POST", body: JSON.stringify({ value: 5 }) }), id, deps)).status).toBe(400);
 });
 
-// ---------- claim ----------
+// ---------- claim (key travels in the URL fragment; the claim page POSTs it) ----------
 
-test("claim: correct key sets the owner cookie and redirects", async () => {
+const claim = (id: string, key: unknown) =>
+  new Request(`http://test/api/roast/${id}/claim`, { method: "POST", body: JSON.stringify({ key }) });
+
+test("claim: correct key → 200 and the owner cookie", async () => {
   const { id, token } = await created();
-  const res = await handleClaim(new Request(`http://test/r/${id}/claim?key=${token}`), id, deps);
-  expect(res.status).toBe(307);
-  expect(new URL(res.headers.get("location")!).pathname).toBe(`/r/${id}`);
+  const res = await handleClaim(claim(id, token), id, deps);
+  expect(res.status).toBe(200);
   expect(res.headers.get("set-cookie")).toContain(`cw_o_${id}=${token}`);
 });
 
-test("claim: wrong key or unknown id → redirect without cookie", async () => {
+test("claim: wrong key, missing key or unknown id → 404 without cookie", async () => {
   const { id } = await created();
-  const wrong = await handleClaim(new Request(`http://test/r/${id}/claim?key=nope`), id, deps);
-  expect(wrong.status).toBe(307);
-  expect(wrong.headers.get("set-cookie")).toBeNull();
-  const unknown = await handleClaim(new Request(`http://test/r/doesnotexist/claim?key=nope`), "doesnotexist", deps);
-  expect(unknown.status).toBe(307);
-  expect(unknown.headers.get("set-cookie")).toBeNull();
+  for (const [rid, key] of [[id, "nope"], [id, undefined], ["doesnotexist", "nope"]] as const) {
+    const res = await handleClaim(claim(rid, key), rid, deps);
+    expect(res.status).toBe(404);
+    expect(res.headers.get("set-cookie")).toBeNull();
+  }
 });
 
 // ---------- Phase 5: per-visitor limit ----------
