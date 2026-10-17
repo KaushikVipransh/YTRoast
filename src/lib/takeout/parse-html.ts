@@ -1,4 +1,5 @@
 import { Parser } from "htmlparser2";
+import { isUrlTitle } from "./parse-json";
 import type { ParseResult, SearchEntry, WatchEntry } from "./types";
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -134,7 +135,7 @@ export function parseWatchHtml(html: string): ParseResult<WatchEntry> {
     const [titleLink, channelLink] = cell.anchors;
     const time = lastLineDate(cell);
     // No link means the video was removed or made private.
-    if (cell.isAd || !titleLink || !time) {
+    if (cell.isAd || !titleLink || isUrlTitle(titleLink.text.trim()) || !time) {
       skipped++;
       continue;
     }

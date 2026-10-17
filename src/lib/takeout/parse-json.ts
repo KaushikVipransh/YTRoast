@@ -38,6 +38,9 @@ function readArray(text: string): RawEntry[] {
   return data.map((e) => (e && typeof e === "object" ? (e as RawEntry) : {}));
 }
 
+// Videos that later went private show up titled with their own URL; treat them as removed.
+export const isUrlTitle = (title: string) => /^(Watched )?https?:\/\//.test(title);
+
 const str = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
 
 export function parseWatchJson(text: string): ParseResult<WatchEntry> {
@@ -48,14 +51,14 @@ export function parseWatchJson(text: string): ParseResult<WatchEntry> {
     const title = str(e.title);
     const titleUrl = str(e.titleUrl);
     // No titleUrl means the video was removed or made private.
-    if (isAd(e) || !titleUrl || !title || !time) {
+    if (isAd(e) || !titleUrl || !title || isUrlTitle(title) || !time) {
       skipped++;
       continue;
     }
     entries.push({
       title: title.replace(/^Watched /, ""),
       videoId: urlParam(titleUrl, "v"),
-      channel: str(e.subtitles?.[0]?.name) || null,
+      channel: str(e.subtitles?.[0]?.name)?.trim() || null,
       time,
     });
   }

@@ -17,9 +17,23 @@ export const BANNED_PHRASES: readonly string[] = [
   "—",
 ];
 
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Word phrases must not match inside other words ("yeah," is not "ah,"); the em dash matches anywhere.
+const BANNED_PATTERNS = BANNED_PHRASES.map((phrase) =>
+  /[a-z]/.test(phrase) ? new RegExp(`(?<![a-z])${escape(phrase)}(?![a-z])`) : new RegExp(escape(phrase)),
+);
+
 export function findBannedPhrases(text: string): string[] {
   const lower = text.toLowerCase().replaceAll("’", "'");
-  return BANNED_PHRASES.filter((phrase) => lower.includes(phrase));
+  return BANNED_PHRASES.filter((_, i) => BANNED_PATTERNS[i].test(lower));
+}
+
+/** The line's text with its evidence cut out once, so a title like "Journey - …" doesn't trip the banned list. */
+function withoutEvidence(text: string, evidence: string): string {
+  if (!evidence.trim()) return text;
+  const at = text.toLowerCase().indexOf(evidence.toLowerCase());
+  return at < 0 ? text : text.slice(0, at) + " " + text.slice(at + evidence.length);
 }
 
 /** Every string and number in the value, unescaped, joined by newlines. */
@@ -42,7 +56,7 @@ export function validateRoast(out: RoastOutput, summary: Summary): { ok: boolean
   check("headline", out.headline);
   out.lines.forEach((line, i) => {
     const where = `line ${i + 1}`;
-    check(where, line.text);
+    check(where, withoutEvidence(line.text, line.evidence));
     const evidence = line.evidence.toLowerCase();
     // One character (or nothing) matches almost any text, so it proves nothing.
     if (evidence.trim().length < 2) {

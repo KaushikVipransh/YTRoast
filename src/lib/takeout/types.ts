@@ -11,8 +11,9 @@ export type ParseResult<T> = { entries: T[]; skipped: number };
 /**
  * no-watch-history: the upload has no watch-history file · unreadable-zip: corrupt zip
  * unreadable-history: the history file is not valid Takeout JSON · no-entries: parsed, but zero watches
+ * unsupported-archive: a .tgz export (we only read .zip)
  */
-export type TakeoutErrorCode = "no-watch-history" | "unreadable-zip" | "unreadable-history" | "no-entries";
+export type TakeoutErrorCode = "no-watch-history" | "unreadable-zip" | "unreadable-history" | "no-entries" | "unsupported-archive";
 
 export class TakeoutError extends Error {
   readonly code: TakeoutErrorCode;

@@ -46,11 +46,13 @@ function bump(map: Map<string, number>, key: string): void {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
+const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
 /** Count desc, then key asc, so output never depends on input order. */
 function ranked(map: Map<string, number>, limit: number, minCount = 1): Named[] {
   return [...map]
     .filter(([, count]) => count >= minCount)
-    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .sort((a, b) => b[1] - a[1] || compare(a[0], b[0]))
     .slice(0, limit)
     .map(([name, count]) => ({ name: clip(name), count }));
 }
@@ -120,7 +122,12 @@ export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry
     topChannels: ranked(channels, TOP),
     topRewatched: [...videos.values()]
       .filter((v) => v.count >= 2)
-      .sort((a, b) => b.count - a.count || (a.latest.title < b.latest.title ? -1 : 1))
+      .sort(
+        (a, b) =>
+          b.count - a.count ||
+          compare(a.latest.title, b.latest.title) ||
+          compare(a.latest.videoId ?? "", b.latest.videoId ?? ""),
+      )
       .slice(0, TOP)
       .map((v) => ({ ...ref(v.latest), count: v.count })),
     hours,

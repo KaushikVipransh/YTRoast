@@ -35,3 +35,13 @@ test("search json: query from URL, ads dropped", () => {
   expect(search.entries).toEqual([{ query: "how to fix my life", time: new Date("2024-03-05T03:31:00.000Z") }]);
   expect(search.skipped).toBe(1);
 });
+
+test("json: whitespace-only channel → null", () => {
+  const text = JSON.stringify([{ title: "Watched x", titleUrl: "https://www.youtube.com/watch?v=x", subtitles: [{ name: "   " }], time: "2024-01-01T00:00:00Z" }]);
+  expect(parseWatchJson(text).entries[0].channel).toBeNull();
+});
+
+test("json: URL-only title (video went private) is skipped", () => {
+  const text = JSON.stringify([{ title: "Watched https://www.youtube.com/watch?v=abc", titleUrl: "https://www.youtube.com/watch?v=abc", time: "2024-01-01T00:00:00Z" }]);
+  expect(parseWatchJson(text)).toEqual({ entries: [], skipped: 1 });
+});

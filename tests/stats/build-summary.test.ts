@@ -262,3 +262,15 @@ test("100k CJK/emoji entries: summary under 30,000 UTF-8 bytes", () => {
   const json = JSON.stringify(buildTakeoutSummary(big, searches));
   expect(new TextEncoder().encode(json).length).toBeLessThan(30_000);
 });
+
+test("topRewatched tie-break is deterministic by videoId", () => {
+  const entries = [
+    w("Same", "c", "2024-01-01T10:00Z", "B"),
+    w("Same", "c", "2024-01-02T10:00Z", "B"),
+    w("Same", "c", "2024-01-03T10:00Z", "A"),
+    w("Same", "c", "2024-01-04T10:00Z", "A"),
+  ];
+  const ids = (list: WatchEntry[]) => buildTakeoutSummary(list, []).topRewatched.map((r) => r.videoId);
+  expect(ids(entries)).toEqual(["A", "B"]);
+  expect(ids([...entries].reverse())).toEqual(["A", "B"]);
+});

@@ -88,3 +88,16 @@ test("150k-entry HTML parses in under 2.5 s", () => {
   expect(entries).toHaveLength(150_000);
   expect(performance.now() - t).toBeLessThan(2500);
 });
+
+const oneCell = (body: string) =>
+  `<div class="outer-cell"><div class="mdl-grid"><div class="content-cell">${body}<br></div><div class="content-cell"></div></div></div>`;
+
+test("html: whitespace-only channel → null", () => {
+  const html = oneCell(`Watched&nbsp;<a href="https://www.youtube.com/watch?v=x">X</a><br><a href="https://www.youtube.com/channel/UC1">   </a><br>Mar 5, 2024, 3:30:00 AM IST`);
+  expect(parseWatchHtml(html).entries[0].channel).toBeNull();
+});
+
+test("html: URL-only title is skipped", () => {
+  const html = oneCell(`Watched&nbsp;<a href="https://www.youtube.com/watch?v=abc">https://www.youtube.com/watch?v=abc</a><br>Mar 5, 2024, 3:30:00 AM IST`);
+  expect(parseWatchHtml(html)).toEqual({ entries: [], skipped: 1 });
+});

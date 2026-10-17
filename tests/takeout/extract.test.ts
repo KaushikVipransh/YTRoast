@@ -49,3 +49,21 @@ test("extract: corrupted .zip → unreadable-zip", () => {
     expect.objectContaining({ code: "unreadable-zip" }),
   );
 });
+
+test("extract: duplicate copies → unsuffixed name wins in either zip order", () => {
+  const a = zipSync({ "T/watch-history (1).json": strToU8("[1]"), "T/watch-history.json": strToU8("[0]") });
+  const b = zipSync({ "T/watch-history.json": strToU8("[0]"), "T/watch-history (1).json": strToU8("[1]") });
+  expect(extractTakeoutFiles("a.zip", a).watch.text).toBe("[0]");
+  expect(extractTakeoutFiles("b.zip", b).watch.text).toBe("[0]");
+});
+
+test("extract: only suffixed copies → largest wins", () => {
+  const z = zipSync({ "T/watch-history (1).json": strToU8("[1,2,3]"), "T/watch-history (2).json": strToU8("[9]") });
+  expect(extractTakeoutFiles("z.zip", z).watch.text).toBe("[1,2,3]");
+});
+
+test.each(["takeout.tgz", "takeout.tar.gz"])("extract: %s → unsupported-archive", (name) => {
+  expect(() => extractTakeoutFiles(name, new Uint8Array([1]))).toThrowError(
+    expect.objectContaining({ code: "unsupported-archive", found: [name] }),
+  );
+});

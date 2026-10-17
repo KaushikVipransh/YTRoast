@@ -110,3 +110,17 @@ test("empty or one-character evidence is rejected", () => {
   expect(r.problems).toContain('line 2: evidence "1" too short');
   expect(r.problems).toContain('line 3: evidence "  " too short');
 });
+
+test("banned phrases match whole words only", () => {
+  expect(findBannedPhrases("yeah, nice")).toEqual([]);
+  expect(findBannedPhrases("ah, so")).toEqual(["ah,"]);
+  expect(findBannedPhrases("the journeyman")).toEqual([]);
+});
+
+test("banned word inside the line's own evidence is not flagged", () => {
+  const s = summaryWithChannel("Journey - Don't Stop Believin'");
+  const ok = validateRoast(roastWith([{ text: "47 plays of Journey - Don't Stop Believin' and you stopped", evidence: "Journey - Don't Stop Believin'" }]), s);
+  expect(ok.problems).toEqual([]);
+  const bad = validateRoast(roastWith([{ text: "your journey with Journey - Don't Stop Believin'", evidence: "Journey - Don't Stop Believin'" }]), s);
+  expect(bad.problems).toContain('line 1: banned "journey"');
+});
