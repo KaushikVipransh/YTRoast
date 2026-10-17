@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { beforeAll, beforeEach, expect, test } from "vitest";
 import type { Db } from "@/lib/db/client";
 import { generateTemplateRoast } from "@/lib/roast/templates";
-import { handleClaim, handleCreate, handleDelete, handleFeedback, handleUpdate, type Deps } from "@/lib/roasts/http";
+import { clientIp, handleClaim, handleCreate, handleDelete, handleFeedback, handleUpdate, makeVisitorLimit, type Deps } from "@/lib/roasts/http";
+import { memoryStore } from "@/lib/limits/limiter";
 import { getRoastView } from "@/lib/roasts/service";
 import type { Summary } from "@/lib/summary";
 import { testDb } from "../db/helpers";
@@ -13,6 +14,8 @@ const summary: Summary = JSON.parse(summaryJson);
 
 let db: Db;
 let generated: Summary[];
+let limited: string[];
+let allow: boolean;
 let deps: Deps;
 
 beforeAll(async () => {
@@ -20,11 +23,14 @@ beforeAll(async () => {
 });
 beforeEach(() => {
   generated = [];
+  limited = [];
+  allow = true;
   deps = {
     db,
+    limit: async (ip) => (limited.push(ip), allow),
     generate: async (s) => {
       generated.push(s);
-      return { roast: generateTemplateRoast(s), generator: "template" };
+      return { roast: generateTemplateRoast(s), generator: "template", ovenFull: false };
     },
   };
 });
@@ -133,4 +139,45 @@ test("claim: wrong key or unknown id → redirect without cookie", async () => {
   const unknown = await handleClaim(new Request(`http://test/r/doesnotexist/claim?key=nope`), "doesnotexist", deps);
   expect(unknown.status).toBe(307);
   expect(unknown.headers.get("set-cookie")).toBeNull();
+});
+
+// ---------- Phase 5: per-visitor limit ----------
+
+test("create: over the daily limit → 429, AI never called, nothing written", async () => {
+  allow = false;
+  const res = await handleCreate(new Request("http://test/api/roast", { method: "POST", body: summaryJson, headers: { "x-real-ip": "1.2.3.4" } }), deps);
+  expect(res.status).toBe(429);
+  expect(await res.json()).toEqual({ error: "rate-limited" });
+  expect(generated).toHaveLength(0);
+  expect(limited).toEqual(["1.2.3.4"]);
+});
+
+test("create: an invalid summary does not use up a slot", async () => {
+  await handleCreate(post(JSON.stringify({ nope: true })), deps);
+  expect(limited).toEqual([]);
+});
+
+test("create: content-length over 64,000 → 413 before reading the body", async () => {
+  const req = new Request("http://test/api/roast", { method: "POST", body: "{}", headers: { "content-length": "999999" } });
+  const res = await handleCreate(req, deps);
+  expect(res.status).toBe(413);
+  expect(req.bodyUsed).toBe(false);
+});
+
+test("create: 201 body says whether the oven was full", async () => {
+  const res = await handleCreate(post(summaryJson), deps);
+  expect(await res.json()).toMatchObject({ ovenFull: false });
+});
+
+test("clientIp: platform header wins over a spoofable forwarded chain", () => {
+  const h = (headers: Record<string, string>) => new Request("http://test", { headers });
+  expect(clientIp(h({ "x-real-ip": "9.9.9.9", "x-forwarded-for": "6.6.6.6, 9.9.9.9" }))).toBe("9.9.9.9");
+  expect(clientIp(h({ "x-forwarded-for": "6.6.6.6, 1.1.1.1" }))).toBe("6.6.6.6");
+  expect(clientIp(h({}))).toBe("unknown");
+});
+
+test("makeVisitorLimit: 3 per day with the memory store", async () => {
+  const limit = makeVisitorLimit(memoryStore(), 3);
+  expect([await limit("a"), await limit("a"), await limit("a"), await limit("a")]).toEqual([true, true, true, false]);
+  expect(await limit("b")).toBe(true);
 });

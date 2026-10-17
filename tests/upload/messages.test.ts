@@ -10,3 +10,7 @@ test.each([
 ])("status %i", (status, expected) => {
   expect(uploadErrorMessage(status)).toContain(expected);
 });
+
+test("429 tells them to come back tomorrow", () => {
+  expect(uploadErrorMessage(429)).toContain("you've been roasted 3 times today. come back tomorrow, you need the rest.");
+});
