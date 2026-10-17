@@ -56,7 +56,7 @@ body {
 /* The signature display treatment: fill + thick ink outline + hard extrude. */
 .display {
   font-family: var(--nf-display), Impact, sans-serif;
-  color: var(--sky);
+  color: var(--display-fill, var(--sky));
   -webkit-text-stroke: var(--outline-w) var(--ink);
   paint-order: stroke fill;
   text-shadow: 4px 4px 0 var(--ink);
@@ -65,7 +65,12 @@ body {
   letter-spacing: 0.01em;
 }
 .display .alt {
-  color: var(--butter);
+  color: var(--display-alt, var(--butter));
+}
+/* On a sky band the default sky fill would vanish: swap to butter / paper. */
+.on-sky {
+  --display-fill: var(--butter);
+  --display-alt: var(--paper);
 }
 .display .hot {
   color: var(--marker);
@@ -157,4 +162,21 @@ body {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Halftone evidence photos (design Part 3): grayscale + contrast with a dot screen multiplied on top. */
+.halftone {
+  position: relative;
+}
+.halftone img {
+  filter: grayscale(1) contrast(1.4);
+}
+.halftone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 45%, transparent) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }

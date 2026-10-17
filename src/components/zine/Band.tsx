@@ -26,7 +26,7 @@ export function Band({
   id?: string;
 }) {
   return (
-    <section id={id} className={`relative ${TONES[tone]} ${className}`}>
+    <section id={id} className={`relative ${TONES[tone]} ${tone === "sky" ? "on-sky" : ""} ${className}`}>
       <svg
         aria-hidden="true"
         viewBox="0 0 400 20"

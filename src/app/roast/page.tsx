@@ -58,7 +58,7 @@ export default function RoastPage() {
       <Band tone="sky" edge={3}>
         <section className="mx-auto max-w-2xl space-y-6 px-4 py-14" aria-labelledby="guide">
           <h2 id="guide" className="display display-l">
-            <span className="alt">get your history from google</span>
+            get your history from google
           </h2>
           <ol className="grid gap-5 sm:grid-cols-2">
             {STEPS.map((step, i) => (

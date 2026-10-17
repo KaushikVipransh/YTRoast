@@ -81,7 +81,7 @@ async function RoastPage({ params }: Props) {
         </p>
       </div>
 
-      <ReportView summary={view.summary} roast={view.roast} />
+      <ReportView summary={view.summary} roast={view.roast} isOwner={view.isOwner} />
 
       {!view.isOwner && (
         <>
