@@ -38,7 +38,11 @@ function quarterName(period: string): string {
 const num = (n: number) => String(n);
 const line = (text: string, evidence: string): Line => ({ text, evidence });
 const top = (s: Summary, i: number) => s.topChannels[i];
-const years = (s: Summary) => Math.max(1, Math.round(s.totals.spanDays / 365));
+/** "1 year", "6 years": rounded, never zero. */
+export function yearsPhrase(spanDays: number): string {
+  const n = Math.max(1, Math.round(spanDays / 365));
+  return n === 1 ? "1 year" : `${n} years`;
+}
 
 /** Strings that can anchor a joke when data is thin: channels and titles, most prominent first. */
 function anchors(s: Summary): string[] {
@@ -62,11 +66,11 @@ const HEADLINES: Headline[] = [
   (s) => `${s.totals.videos} videos of evidence and not one of them helps your case.`,
   () => "you have the watch history of someone avoiding something big.",
   () => "the algorithm knows you better than your friends do, and it pities you.",
-  (s) => (s.totals.spanDays >= 730 ? `${years(s)} years of history and you peaked in the first week.` : null),
+  (s) => (s.totals.spanDays >= 730 ? `${yearsPhrase(s.totals.spanDays)} of history and you peaked in the first week.` : null),
 ];
 
 const THIN_HEADLINES: Headline[] = [
-  (s) => `${s.totals.videos} videos in ${years(s)} years. you're not mysterious, you're just boring.`,
+  (s) => `${s.totals.videos} videos in ${yearsPhrase(s.totals.spanDays)}. you're not mysterious, you're just boring.`,
   () => "your history is so empty the algorithm filed a missing persons report.",
   () => "you either turned history off or you have nothing to hide. both are worse.",
 ];
@@ -157,7 +161,7 @@ const PERSONALITIES: Personality[] = [
   {
     when: (s) => s.afterMidnightPct >= 25,
     label: "THE 3AM PHILOSOPHER",
-    description: (s) => `${s.afterMidnightPct}% of your watching happens when sane people are asleep. you call it thinking. your body calls it a hostage situation.`,
+    description: (s) => `${s.afterMidnightPct}% of your watching happens when sane people are asleep. you call it thinking. your body calls it a slow-motion emergency.`,
   },
   {
     when: (s) => (s.topRewatched[0]?.count ?? 0) >= 10,
@@ -177,7 +181,7 @@ const PERSONALITIES: Personality[] = [
   {
     when: (s) => share(s) >= 0.2,
     label: "THE ONE-CHANNEL WONDER",
-    description: (s) => `${top(s, 0).name} is a fifth of everything you watch. that's not fandom, that's a parasocial mortgage.`,
+    description: (s) => `${top(s, 0).name} is ${Math.round(share(s) * 100)}% of everything you watch. that's not fandom, that's a parasocial mortgage.`,
   },
   {
     when: (s) => s.totals.videos >= 10_000,

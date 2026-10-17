@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { beforeAll, expect, test } from "vitest";
 import { roasts } from "@/lib/db/schema";
 import type { Db } from "@/lib/db/client";
@@ -42,4 +42,12 @@ test("a tombstone (deleted, no content) is allowed", async () => {
   await db.insert(roasts).values({ id: "t1", ...base, summary: null, roast: null, deletedAt: new Date() });
   const [row] = await db.select().from(roasts).where(eq(roasts.id, "t1"));
   expect(row.summary).toBeNull();
+});
+
+// Review fix I2: Supabase exposes public tables through its Data API; RLS with no policies closes that door.
+test("row level security is enabled on roasts", async () => {
+  const result = (await db.execute(sql`select relrowsecurity from pg_class where relname = 'roasts'`)) as unknown as {
+    rows: { relrowsecurity: boolean }[];
+  };
+  expect(result.rows[0].relrowsecurity).toBe(true);
 });

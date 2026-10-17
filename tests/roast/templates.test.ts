@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { RoastOutputSchema } from "@/lib/roast/schema";
-import { TEMPLATE_COUNT, generateTemplateRoast } from "@/lib/roast/templates";
+import { TEMPLATE_COUNT, generateTemplateRoast, yearsPhrase } from "@/lib/roast/templates";
 import { validateRoast } from "@/lib/roast/validate";
 import { buildTakeoutSummary } from "@/lib/stats/build-summary";
 import type { Summary } from "@/lib/summary";
@@ -42,4 +42,35 @@ test("eras are named for every era in the summary", () => {
 
 test("at least 60 hand-written templates", () => {
   expect(TEMPLATE_COUNT).toBeGreaterThanOrEqual(60);
+});
+
+// Review fix M4: template copy must state true numbers.
+test("one-channel personality states the real share", () => {
+  const base = persona("thin-data");
+  const s: Summary = {
+    ...base,
+    thinData: false,
+    afterMidnightPct: 0,
+    topRewatched: [],
+    longestBinge: null,
+    searches: null,
+    totals: { ...base.totals, videos: 200 },
+    topChannels: [{ name: "Vevo", count: 100 }],
+  };
+  const out = generateTemplateRoast(s);
+  expect(out.personality.label).toBe("THE ONE-CHANNEL WONDER");
+  expect(out.personality.description).toContain("50%");
+  expect(out.personality.description).not.toContain("a fifth");
+});
+
+test("year counts are grammatical", () => {
+  expect(yearsPhrase(100)).toBe("1 year");
+  expect(yearsPhrase(800)).toBe("2 years");
+});
+
+test("no phrase repeats between headline and personality", () => {
+  for (const [, s] of cases) {
+    const out = generateTemplateRoast(s);
+    expect(out.personality.description.includes("hostage") && out.headline.includes("hostage")).toBe(false);
+  }
 });

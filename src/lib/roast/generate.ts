@@ -26,12 +26,23 @@ const defaultCall: CallFn = (step, summary, signal) => generateRoastWith(step.pr
 
 const undash = (s: string) => s.replace(/\s*—\s*/g, ", ");
 
+/** Undashes a line everywhere except inside its quoted evidence (a real title may contain an em dash). */
+function undashLine(text: string, evidence: string): string {
+  const at = evidence.trim() ? text.toLowerCase().indexOf(evidence.toLowerCase()) : -1;
+  if (at < 0) return undash(text);
+  return undash(text.slice(0, at)) + text.slice(at, at + evidence.length) + undash(text.slice(at + evidence.length));
+}
+
 /**
  * Fixes what can be fixed without another AI call: em dashes become commas, captions with banned
  * phrases are dropped, and bad lines are dropped while more than 6 remain. Returns null if the roast
  * still fails validation (e.g. a banned phrase in the headline).
  */
 export function repairRoast(out: RoastOutput, summary: Summary): RoastOutput | null {
+  if (validateRoast(out, summary).ok) return out;
+
+  const headline = undash(out.headline);
+  const personality = { label: undash(out.personality.label), description: undash(out.personality.description) };
   const captions = Object.fromEntries(
     Object.entries(out.captions).map(([key, value]) => {
       if (value === null) return [key, null];
@@ -40,14 +51,14 @@ export function repairRoast(out: RoastOutput, summary: Summary): RoastOutput | n
     }),
   ) as RoastOutput["captions"];
 
-  let lines = out.lines.map((l) => ({ ...l, text: undash(l.text) }));
+  let lines = out.lines.map((l) => ({ ...l, text: undashLine(l.text, l.evidence) }));
   const lineIsBad = (i: number) =>
     validateRoast({ ...out, lines: [lines[i]], captions }, summary).problems.some((p) => p.startsWith("line 1:"));
   for (let i = lines.length - 1; i >= 0 && lines.length > MIN_LINES; i--) {
     if (lineIsBad(i)) lines = lines.filter((_, j) => j !== i);
   }
 
-  const repaired = { ...out, lines, captions };
+  const repaired = { ...out, headline, personality, lines, captions };
   return validateRoast(repaired, summary).ok ? repaired : null;
 }
 

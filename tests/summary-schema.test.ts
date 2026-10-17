@@ -49,3 +49,10 @@ test("rejects non-objects", () => {
   expect(parseSummary(null)).toBeNull();
   expect(parseSummary("summary")).toBeNull();
 });
+
+// Review fix M3: a roast needs at least one watch to be about.
+test("rejects a summary with zero videos", () => {
+  const s = clone();
+  s.totals.videos = 0;
+  expect(parseSummary(s)).toBeNull();
+});

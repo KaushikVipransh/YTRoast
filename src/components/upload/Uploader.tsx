@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { processInWorker } from "@/lib/takeout/client";
 import { errorMessage } from "@/lib/takeout/messages";
+import { uploadErrorMessage } from "@/lib/upload-messages";
 
 type State =
   | { kind: "idle" }
@@ -49,11 +50,11 @@ export function Uploader() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(result.summary),
       });
-      if (res.status !== 201) throw new Error(String(res.status));
+      if (res.status !== 201) return setState({ kind: "error", message: uploadErrorMessage(res.status) });
       const { id } = (await res.json()) as { id: string };
       router.push(`/r/${id}`);
     } catch {
-      setState({ kind: "error", message: "the roast oven jammed. try again." });
+      setState({ kind: "error", message: uploadErrorMessage(0) });
     }
   }
 
@@ -82,7 +83,11 @@ export function Uploader() {
           accept=".zip,.json,.html"
           className="sr-only"
           disabled={busy}
-          onChange={(e) => void handle(e.target.files?.[0])}
+          onChange={(e) => {
+            void handle(e.target.files?.[0]);
+            // Reset so picking the same file again after an error still fires a change event.
+            e.target.value = "";
+          }}
         />
       </label>
 

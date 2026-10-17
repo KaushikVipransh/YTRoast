@@ -98,10 +98,12 @@ test("update: invalid visibility → 400", async () => {
 });
 
 test("delete: owner burns it; no cookie → 404", async () => {
-  const { id, cookie } = await created();
+  const { id, cookie, token } = await created();
   expect((await handleDelete(withCookie(null, { method: "DELETE" }), id, deps)).status).toBe(404);
   expect((await handleDelete(withCookie(cookie, { method: "DELETE" }), id, deps)).status).toBe(200);
-  expect(await getRoastView(db, id, null)).toEqual({ kind: "deleted" });
+  expect(await getRoastView(db, id, token)).toEqual({ kind: "deleted" });
+  // It was never shared, so strangers still can't tell it existed.
+  expect(await getRoastView(db, id, null)).toEqual({ kind: "missing" });
 });
 
 // ---------- feedback ----------

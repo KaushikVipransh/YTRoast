@@ -146,3 +146,28 @@ test("defaultChain: approved order, timeouts and models", () => {
     { generator: "groq", provider: "groq", model: "openai/gpt-oss-120b", timeoutMs: 15_000 },
   ]);
 });
+
+// Review fix I1/M2: em dashes inside quoted evidence are data, not style; elsewhere they are repaired everywhere.
+test("repair: a valid roast whose evidence contains an em dash is kept as-is", () => {
+  const s: Summary = { ...summary, topChannels: [{ name: "Eminem — Lose Yourself", count: 9 }, ...summary.topChannels.slice(1)] };
+  const roast = goodRoast(6);
+  roast.lines[0] = { text: "9 plays of Eminem — Lose Yourself and you still choked", evidence: "Eminem — Lose Yourself" };
+  expect(validateRoast(roast, s).ok).toBe(true);
+  expect(repairRoast(roast, s)).toEqual(roast);
+});
+
+test("repair: em dash outside the evidence is fixed, evidence untouched", () => {
+  const s: Summary = { ...summary, topChannels: [{ name: "Eminem — Lose Yourself", count: 9 }, ...summary.topChannels.slice(1)] };
+  const roast = goodRoast(6);
+  roast.lines[0] = { text: "Eminem — Lose Yourself — on repeat", evidence: "Eminem — Lose Yourself" };
+  expect(repairRoast(roast, s)?.lines[0].text).toBe("Eminem — Lose Yourself, on repeat");
+});
+
+test("repair: em dashes in headline and personality are fixed, not fatal", () => {
+  const fixed = repairRoast(
+    { ...goodRoast(), headline: "a gym nerd — no gains", personality: { label: "THE THEORIST", description: "knows everything — lifts nothing." } },
+    summary,
+  );
+  expect(fixed?.headline).toBe("a gym nerd, no gains");
+  expect(fixed?.personality.description).toBe("knows everything, lifts nothing.");
+});

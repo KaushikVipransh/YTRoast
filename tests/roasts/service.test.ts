@@ -78,3 +78,11 @@ test("feedback is stored and shown to the owner", async () => {
   expect(await setFeedback(db, id, ownerToken, -1)).toBe("ok");
   expect(await getRoastView(db, id, ownerToken)).toMatchObject({ feedback: -1 });
 });
+
+// Review fix M1: a deleted private roast must look missing to strangers, like any private roast.
+test("deleted private roast: owner sees burned, strangers see missing", async () => {
+  const { id, ownerToken } = await make();
+  await deleteRoast(db, id, ownerToken);
+  expect(await getRoastView(db, id, ownerToken)).toEqual({ kind: "deleted" });
+  expect(await getRoastView(db, id, null)).toEqual({ kind: "missing" });
+});

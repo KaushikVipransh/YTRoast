@@ -47,9 +47,10 @@ export async function createRoast(
 export async function getRoastView(db: Db, id: string, ownerToken: string | null): Promise<RoastView> {
   const row = await findRow(db, id);
   if (!row) return { kind: "missing" };
-  if (row.deletedAt) return { kind: "deleted" };
   const owner = isOwner(row, ownerToken);
+  // Checked before "deleted": a burned private roast must not reveal to strangers that it ever existed.
   if (row.visibility === "private" && !owner) return { kind: "missing" };
+  if (row.deletedAt) return { kind: "deleted" };
   return {
     kind: "roast",
     id: row.id,

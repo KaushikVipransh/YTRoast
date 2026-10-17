@@ -19,7 +19,8 @@ export const SummarySchema: z.ZodType<Summary> = z.strictObject({
   version: z.literal(1),
   source: z.literal("takeout"),
   totals: z.strictObject({
-    videos: count,
+    // A roast needs at least one watch to be about (real uploads with none are rejected in the browser).
+    videos: count.min(1),
     channels: count,
     firstWatch: localTime.nullable(),
     lastWatch: localTime.nullable(),

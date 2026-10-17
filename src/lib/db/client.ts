@@ -4,7 +4,8 @@ import * as schema from "./schema";
 
 export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 
-const MIGRATIONS = join(process.cwd(), "drizzle");
+// Resolved per call (not at import) so it follows the working directory the server actually runs in.
+const migrationsFolder = () => join(process.cwd(), "drizzle");
 
 /** In-memory Postgres with migrations applied: tests, e2e, and local dev without Supabase. */
 export async function createPgliteDb(): Promise<Db> {
@@ -12,7 +13,7 @@ export async function createPgliteDb(): Promise<Db> {
   const { drizzle } = await import("drizzle-orm/pglite");
   const { migrate } = await import("drizzle-orm/pglite/migrator");
   const db = drizzle(new PGlite(), { schema });
-  await migrate(db, { migrationsFolder: MIGRATIONS });
+  await migrate(db, { migrationsFolder: migrationsFolder() });
   return db as unknown as Db;
 }
 
@@ -31,7 +32,11 @@ export function getDb(): Promise<Db> {
   if (!cache.__cwDb) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL is not set");
-    cache.__cwDb = url.startsWith("pglite:") ? createPgliteDb() : createPostgresDb(url);
+    cache.__cwDb = (url.startsWith("pglite:") ? createPgliteDb() : createPostgresDb(url)).catch((err: unknown) => {
+      // Don't cache a failure: the next request gets a fresh attempt instead of a bricked instance.
+      cache.__cwDb = undefined;
+      throw err;
+    });
   }
   return cache.__cwDb;
 }
