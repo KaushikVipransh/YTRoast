@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Uploader } from "@/components/upload/Uploader";
 import { PRIVACY_LINE } from "@/lib/copy";
 
@@ -13,7 +14,12 @@ export default function RoastPage() {
       </header>
 
       <Uploader />
-      <p className="font-mono text-sm">🔒 {PRIVACY_LINE}</p>
+      <p className="font-mono text-sm">
+        🔒 {PRIVACY_LINE}{" "}
+        <Link href="/privacy" className="underline">
+          details
+        </Link>
+      </p>
 
       <section className="space-y-3">
         <h2 className="text-xl font-black uppercase">get your history from google</h2>

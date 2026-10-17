@@ -6,3 +6,7 @@ export const PRIVACY_LINE =
 export function templateNotice(): string {
   return "too many people getting roasted right now. here's a quick one from your stats, come back later for the real thing.";
 }
+
+/** Owner decisions (pending): the contact line on /privacy and /terms is hidden while this is null. */
+export const CONTACT_EMAIL: string | null = null;
+export const PRODUCT_NAME = "Caught Watching";
