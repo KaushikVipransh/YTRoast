@@ -1,6 +1,6 @@
 # Voice spike decision
 
-Date: 2026-10-17 · Status: **PROVISIONAL, waiting for the owner's approval** · Plan: Phase 1, Task 2
+Date: 2026-10-17 · Status: **APPROVED by the owner (2026-10-17)** · Plan: Phase 1, Task 2
 
 ## Setup
 - 5 hand-written persona Summaries (`spike/personas/`): gym-bro, 3am-philosopher, minecraft-adult, self-help-addict, thin-data.
@@ -26,7 +26,7 @@ No model refused or softened on the brutal topics (breakups, loneliness, 4am dep
 - gpt-oss-120b: "you rewatched 'So long nerds' 31 times like it's therapy." · "you Google 'is creatine safe for hair' like it's a personality trait."
 - qwen3.8-27b: "44 views of 'All Too Well (10 Minute Version)'. you are doing this to yourself." · "searched 'is creatine safe for hair' 14 times. you're terrified of side effects you haven't even taken yet."
 
-## Proposed provider order (for Phase 2's fallback chain)
+## Provider order (approved, for Phase 2's fallback chain)
 1. **Gemini 3.8 Flash**, thinking `low`, with a hard 20 s timeout. Best voice.
 2. **Gemini 3.1 Flash-Lite**, thinking `low`. Separate quota, still good, fast.
 3. **Groq gpt-oss-120b**. Third quota pool, about 50 roasts/day.
