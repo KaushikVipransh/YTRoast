@@ -29,6 +29,14 @@ DATABASE_URL=pglite://memory  # in-memory Postgres for local dev; a Supabase URL
 SUPABASE_POOLER_URL=...       # transaction pooler (6543): becomes DATABASE_URL on Vercel
 SUPABASE_SESSION_URL=...      # session pooler (5432): for pnpm db:migrate only
 # ROAST_GENERATOR=template    # skip the AI entirely (offline dev)
+# --- Phase 5 guardrails (all optional locally; each degrades gracefully when unset) ---
+# UPSTASH_REDIS_REST_URL=...     # rate limits + AI budgets shared across instances (else in-memory per instance)
+# UPSTASH_REDIS_REST_TOKEN=...
+# ROAST_DAILY_LIMIT=3            # roasts per visitor per day (template "oven full" roasts don't count)
+# GEMINI_DAILY_BUDGET=15  GEMINI_LITE_DAILY_BUDGET=400  GROQ_DAILY_BUDGET=40   # calls/UTC day per provider
+# NEXT_PUBLIC_POSTHOG_KEY=phc_... NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+# NEXT_PUBLIC_SENTRY_DSN=https://...
+# CRON_SECRET=...                # Vercel Cron bearer for /api/cron/keepalive (daily DB ping)
 # NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
@@ -40,6 +48,7 @@ Then run `pnpm dev`. With `pglite://memory`, the data resets whenever the dev se
 |---|---|
 | `pnpm dev` | Dev server on http://localhost:3000 |
 | `pnpm test` | Unit and integration tests (Vitest, in-memory Postgres). The heavy perf tests run last, one file at a time |
+| `pnpm e2e:prod` | Same browser run against `next build && next start` (what Vercel serves) |
 | `pnpm e2e` | One real-browser run of the whole flow (Playwright; template roasts, in-memory DB). Run `pnpm exec playwright install chromium` once first |
 | `pnpm build` | Production build |
 | `pnpm spike [dir]` | Voice spike: roast every summary in `spike/personas` (and `spike/summaries`) with every model and write a report to `spike/out/` |
