@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caught Watching
 
-## Getting Started
+People upload their YouTube watch history and get a savage, specific roast plus a Wrapped-style report, then share it as a link.
 
-First, run the development server:
+- The whole Takeout file is parsed **in the browser** (Web Worker). Only a compact stats summary goes to the server and the AI.
+- Roasts are **private by default**. The owner shares, unshares or deletes them. Deleting wipes the content.
+- AI chain: Gemini 3.8 Flash → Gemini 3.1 Flash-Lite → Groq gpt-oss-120b → hand-written template roast.
+
+Specs and plans live in [`docs/superpowers/`](docs/superpowers/).
+
+## Setup
+
+Requires Node 24+ and pnpm 10.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+GEMINI_API_KEY=...            # https://aistudio.google.com (free tier)
+GROQ_API_KEY=...              # https://console.groq.com (free tier)
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_LITE_MODEL=gemini-3.1-flash-lite
+GEMINI_THINKING=low
+GROQ_MODEL=openai/gpt-oss-120b
+DATABASE_URL=pglite://memory  # in-memory Postgres for local dev; a Supabase URL in production
+# ROAST_GENERATOR=template    # skip the AI entirely (offline dev)
+# NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then run `pnpm dev`. With `pglite://memory`, the data resets whenever the dev server restarts.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Dev server on http://localhost:3000 |
+| `pnpm test` | Unit and integration tests (Vitest, in-memory Postgres). The heavy perf tests run last, one file at a time |
+| `pnpm e2e` | One real-browser run of the whole flow (Playwright; template roasts, in-memory DB). Run `pnpm exec playwright install chromium` once first |
+| `pnpm build` | Production build |
+| `pnpm spike [dir]` | Voice spike: roast every summary in `spike/personas` (and `spike/summaries`) with every model and write a report to `spike/out/` |
+| `pnpm summarize <takeout.zip> [label]` | Turn a real Takeout export into `spike/summaries/real-<label>.json` (gitignored, since it's personal data) |
+| `pnpm db:generate` | Generate a SQL migration from `src/lib/db/schema.ts` |
+| `pnpm db:migrate` | Apply migrations to `DATABASE_URL`. Use a **direct or session** connection string here, not the transaction pooler |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying (Vercel Hobby + Supabase, $0)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Supabase:** create a free project. Copy two connection strings:
+   - the **transaction pooler** URL (port 6543), for the app's `DATABASE_URL`
+   - the **session or direct** URL, for migrations
+2. **Migrate:** run `DATABASE_URL="<session url>" pnpm db:migrate`.
+3. **Vercel:** import the GitHub repo and set the env vars:
+   - everything from `.env.local` above, but with the pooler `DATABASE_URL`
+   - `NEXT_PUBLIC_SITE_URL=https://<project>.vercel.app`
+4. **Check:** after deploying, upload a Takeout file, share the roast, and paste the link into a chat app to see the preview.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Free projects on Supabase pause after 7 days without traffic. A keep-alive cron arrives in Phase 5.
