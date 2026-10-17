@@ -1,0 +1,115 @@
+{
+  "id": "27e4850b-5cee-4ade-bc5f-aae55744bef9",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.roasts": {
+      "name": "roasts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "owner_hash": {
+          "name": "owner_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "visibility": {
+          "name": "visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'private'"
+        },
+        "summary": {
+          "name": "summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roast": {
+          "name": "roast",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "generator": {
+          "name": "generator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "feedback": {
+          "name": "feedback",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "roasts_source_check": {
+          "name": "roasts_source_check",
+          "value": "\"roasts\".\"source\" in ('takeout', 'quick')"
+        },
+        "roasts_visibility_check": {
+          "name": "roasts_visibility_check",
+          "value": "\"roasts\".\"visibility\" in ('private', 'public')"
+        },
+        "roasts_generator_check": {
+          "name": "roasts_generator_check",
+          "value": "\"roasts\".\"generator\" in ('gemini', 'gemini-lite', 'groq', 'template')"
+        },
+        "roasts_feedback_check": {
+          "name": "roasts_feedback_check",
+          "value": "\"roasts\".\"feedback\" in (-1, 1)"
+        },
+        "roasts_deleted_content_check": {
+          "name": "roasts_deleted_content_check",
+          "value": "(\"roasts\".\"deleted_at\" is null) = (\"roasts\".\"summary\" is not null and \"roasts\".\"roast\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
