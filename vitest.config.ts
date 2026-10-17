@@ -5,6 +5,8 @@ export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
     env: { TZ: "UTC" },
+    // Each DB test file boots its own PGlite (WASM Postgres); give setup hooks room on a busy machine.
+    hookTimeout: 30_000,
     projects: [
       {
         extends: true,
