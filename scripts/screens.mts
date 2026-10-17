@@ -55,7 +55,7 @@ try {
       page.on("console", (m) => m.type() === "error" && console.log(`  [${name}@${w}] console: ${m.text().slice(0, 300)}`));
       page.on("pageerror", (e) => console.log(`  [${name}@${w}] pageerror: ${e.message.slice(0, 300)}`));
       await page.goto(BASE + path, { waitUntil: "networkidle" });
-      await page.screenshot({ path: `${OUT}/${name}-${w}.png`, fullPage: true });
+      await page.screenshot({ path: `${OUT}/${name}-${w}.png`, fullPage: !process.env.TOP });
       await page.close();
       console.log(`${OUT}/${name}-${w}.png`);
     }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Button, buttonClass } from "@/components/zine/Button";
 import { track } from "@/lib/analytics";
 
 type Props = {
@@ -12,13 +13,11 @@ type Props = {
   secretLink: string;
 };
 
-const button = "border-2 border-ink bg-paper px-4 py-2 font-bold uppercase disabled:opacity-50";
-
 export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
   const [vote, setVote] = useState(feedback);
 
   async function call(path: string, init: RequestInit): Promise<boolean> {
@@ -64,69 +63,79 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
 
   async function burn() {
     if (await call(`/api/roast/${id}`, { method: "DELETE" })) {
+      dialog.current?.close();
       track("roast_deleted");
       router.refresh();
     }
   }
 
   return (
-    <aside aria-label="owner controls" className="space-y-4 border-2 border-ink bg-white p-4">
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className={`${button} bg-butter`} onClick={toggleShare} disabled={busy}>
+    <aside aria-label="owner controls" className="relative space-y-5 rounded-md border-[3px] border-ink bg-paper p-5 shadow-hard">
+      <p className="label absolute -top-4 left-4 rounded border-[3px] border-ink bg-butter px-2">your file</p>
+      <div className="flex flex-wrap gap-3 pt-2">
+        <Button variant="primary" onClick={toggleShare} disabled={busy}>
           {visibility === "private" ? "share" : "make private"}
-        </button>
+        </Button>
         {visibility === "public" && (
           <>
-            <button type="button" className={button} onClick={() => copy(shareUrl, "link copied.")} disabled={busy}>
+            <Button variant="secondary" onClick={() => copy(shareUrl, "link copied.")} disabled={busy}>
               copy link
-            </button>
-            <button type="button" className={button} onClick={share} disabled={busy}>
+            </Button>
+            <Button variant="secondary" onClick={share} disabled={busy}>
               send
-            </button>
+            </Button>
           </>
         )}
-        <button type="button" className={`${button} text-marker`} onClick={() => setConfirming(true)} disabled={busy}>
+        <a className={buttonClass("secondary")} href={`/r/${id}/story`} download={`caught-watching-${id}.png`}>
+          download story
+        </a>
+        <Button variant="danger" onClick={() => dialog.current?.showModal()} disabled={busy}>
           delete
-        </button>
+        </Button>
       </div>
 
-      {confirming && (
-        <div role="alertdialog" aria-label="burn the evidence?" className="space-y-2 border-2 border-marker p-3">
-          <p className="font-bold">burn the evidence?</p>
-          <div className="flex gap-2">
-            <button type="button" className={`${button} bg-marker text-white`} onClick={burn} disabled={busy}>
-              burn it
-            </button>
-            <button type="button" className={button} onClick={() => setConfirming(false)} disabled={busy}>
-              keep
-            </button>
-          </div>
+      <dialog
+        ref={dialog}
+        aria-labelledby={`burn-${id}`}
+        className="m-auto max-w-sm rounded-md border-[3px] border-marker bg-paper p-6 text-ink shadow-hard backdrop:bg-ink/60"
+      >
+        <p id={`burn-${id}`} className="display display-l text-[32px]">
+          burn the <span className="hot">evidence?</span>
+        </p>
+        <p className="mt-2">this wipes the roast for good. the link will say it was burned.</p>
+        <div className="mt-5 flex gap-3">
+          <Button variant="danger" className="bg-marker" onClick={burn} disabled={busy}>
+            burn it
+          </Button>
+          <Button variant="secondary" autoFocus onClick={() => dialog.current?.close()} disabled={busy}>
+            keep
+          </Button>
         </div>
-      )}
+      </dialog>
 
-      <div className="flex items-center gap-2">
-        <span>did this hit?</span>
-        <button type="button" aria-pressed={vote === 1} className={button} onClick={() => sendFeedback(1)} disabled={busy}>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="label">did this hit?</span>
+        <Button variant="secondary" aria-label="yes, it hit" aria-pressed={vote === 1} onClick={() => sendFeedback(1)} disabled={busy} className="min-w-14 px-3">
           👍
-        </button>
-        <button type="button" aria-pressed={vote === -1} className={button} onClick={() => sendFeedback(-1)} disabled={busy}>
+        </Button>
+        <Button variant="secondary" aria-label="no, it missed" aria-pressed={vote === -1} onClick={() => sendFeedback(-1)} disabled={busy} className="min-w-14 px-3">
           👎
-        </button>
+        </Button>
       </div>
 
-      <details>
-        <summary className="cursor-pointer font-bold">your secret link</summary>
+      <details className="rounded border-[3px] border-dashed border-ink p-3">
+        <summary className="label min-h-8 cursor-pointer">your secret link</summary>
         <p className="mt-2 text-sm">save this. it&apos;s the only way back in if you clear cookies.</p>
         <p className="mt-1 break-all font-mono text-xs" data-testid="secret-link">
           {secretLink}
         </p>
-        <button type="button" className={`${button} mt-2`} onClick={() => copy(secretLink, "secret link copied.")}>
+        <Button variant="secondary" className="mt-3" onClick={() => copy(secretLink, "secret link copied.")}>
           copy secret link
-        </button>
+        </Button>
       </details>
 
       {note && (
-        <p role="status" className="text-sm">
+        <p role="status" className="font-mono text-sm">
           {note}
         </p>
       )}

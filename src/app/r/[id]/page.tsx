@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { BurnedView } from "@/components/roast/BurnedView";
 import { OwnerControls } from "@/components/roast/OwnerControls";
 import { RoastMeNext } from "@/components/RoastMeNext";
+import { SiteNav } from "@/components/SiteNav";
 import { Track } from "@/components/Track";
 import { ReportView } from "@/components/roast/ReportView";
 import { RoastView } from "@/components/roast/RoastView";
@@ -50,28 +51,35 @@ async function RoastPage({ params }: Props) {
 
   const shareUrl = `${siteUrl()}/r/${id}`;
   return (
-    <main className="mx-auto w-full max-w-xl space-y-10 px-4 pb-32 pt-8">
-      {view.isOwner ? (
-        view.visibility === "private" && (
-          <p className="font-mono text-sm">🔒 only you can see this. share when ready.</p>
-        )
-      ) : (
-        <p className="inline-block border-2 border-ink bg-butter px-2 font-bold uppercase">
-          👀 you&apos;re reading someone&apos;s file
+    <main className="flex-1 overflow-x-clip pb-32">
+      <SiteNav />
+      <div className="mx-auto w-full max-w-2xl space-y-10 px-4 pt-2">
+        {view.isOwner ? (
+          view.visibility === "private" && (
+            <p className="font-mono text-sm">🔒 only you can see this. share when ready.</p>
+          )
+        ) : (
+          <p className="label inline-block -rotate-1 rounded border-[3px] border-ink bg-butter px-3 py-1 shadow-press">
+            👀 you&apos;re reading someone&apos;s file
+          </p>
+        )}
+
+        <RoastView roast={view.roast} generator={view.generator} isOwner={view.isOwner} caseId={id} />
+
+        {view.isOwner && (
+          <OwnerControls
+            id={id}
+            visibility={view.visibility}
+            feedback={view.feedback}
+            shareUrl={shareUrl}
+            secretLink={`${shareUrl}/claim#key=${token}`}
+          />
+        )}
+
+        <p className="label animate-bounce text-center" aria-hidden="true">
+          ▼ scroll for your full file
         </p>
-      )}
-
-      <RoastView roast={view.roast} generator={view.generator} />
-
-      {view.isOwner && (
-        <OwnerControls
-          id={id}
-          visibility={view.visibility}
-          feedback={view.feedback}
-          shareUrl={shareUrl}
-          secretLink={`${shareUrl}/claim#key=${token}`}
-        />
-      )}
+      </div>
 
       <ReportView summary={view.summary} roast={view.roast} />
 

@@ -138,3 +138,23 @@ body {
     stroke-dashoffset: 0;
   }
 }
+
+/* Roast lines drop in one by one, landing with a small wobble (design Part 7). Visible by default. */
+@media (prefers-reduced-motion: no-preference) {
+  .roast-line {
+    animation: drop-in 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) rotate(2deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

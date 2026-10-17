@@ -10,16 +10,29 @@ export function Display({ as: Tag = "h1", size, children, className = "", id }: 
   );
 }
 
-/** Red marker circle drawn around evidence inside a line; the text stays plain and readable. */
-export function MarkerCircle({ children, evidence }: { children: ReactNode; evidence?: string }) {
+/** Long evidence wraps, and a circle stretched over two lines reads as a strikethrough: those get underlined. */
+const CIRCLE_MAX = 18;
+
+/**
+ * Red marker around the evidence inside a roast line: a hand-drawn circle for short evidence, a wavy marker
+ * underline for long titles (design Part 4 allows either). The text stays plain, readable text.
+ */
+export function MarkerCircle({ children, evidence = "" }: { children: ReactNode; evidence?: string }) {
+  if (evidence.length > CIRCLE_MAX) {
+    return (
+      <span data-evidence={evidence} className="underline decoration-marker decoration-wavy decoration-[3px] underline-offset-[5px] [text-decoration-skip-ink:none]">
+        {children}
+      </span>
+    );
+  }
   return (
-    <span data-evidence={evidence ?? ""} className="relative inline px-0.5">
+    <span data-evidence={evidence} className="relative inline-block whitespace-nowrap px-1">
       {children}
       <svg
         aria-hidden="true"
         viewBox="0 0 100 40"
         preserveAspectRatio="none"
-        className="pointer-events-none absolute -left-2 -top-1.5 h-[calc(100%+12px)] w-[calc(100%+16px)] overflow-visible"
+        className="pointer-events-none absolute -left-1.5 -top-1.5 h-[calc(100%+12px)] w-[calc(100%+12px)] overflow-visible"
       >
         <path
           className="marker-draw"

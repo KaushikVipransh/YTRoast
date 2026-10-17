@@ -59,7 +59,7 @@ export default function Home() {
                 BRO.
               </Sticker>
             </div>
-            <Stamp text="OFFICIALLY ROASTED · NO REFUNDS · " center="🔥" className="absolute -bottom-10 -right-6" />
+            <Stamp text="OFFICIALLY ROASTED · NO REFUNDS · " center="🔥" size={112} className="absolute -bottom-10 -right-6" />
           </div>
 
           <div className="space-y-6">
