@@ -51,3 +51,41 @@ test("sentry scrubber drops bodies, cookies and query strings", async () => {
   });
   expect(event.request).toEqual({ url: "https://x/api/roast", headers: { "user-agent": "ua" } });
 });
+
+// Review fixes 1–3: nothing user-identifying leaves through Sentry or PostHog.
+test("sentry scrubber cuts query params out of database error messages", async () => {
+  const { scrubEvent } = await import("@/lib/sentry");
+  const event = scrubEvent({
+    type: undefined,
+    exception: { values: [{ type: "DrizzleQueryError", value: 'Failed query: insert into "roasts"\nparams: {"topChannels":[{"name":"secret channel"}]}' }] },
+    extra: { params: "secret" },
+  });
+  expect(event.exception?.values?.[0].value).toBe('Failed query: insert into "roasts"');
+  expect(event.extra).toBeUndefined();
+});
+
+test("sentry scrubber removes URL fragments (secret claim keys) from the request and breadcrumbs", async () => {
+  const { scrubEvent } = await import("@/lib/sentry");
+  const event = scrubEvent({
+    type: undefined,
+    request: { url: "https://x/r/abc/claim#key=SECRET" },
+    breadcrumbs: [{ category: "navigation", data: { from: "/r/abc/claim#key=SECRET", to: "/r/abc" } }, { category: "fetch", data: { url: "https://x/api/roast/abc/claim#key=SECRET" } }],
+  });
+  expect(JSON.stringify(event)).not.toContain("SECRET");
+  expect(event.request?.url).toBe("https://x/r/abc/claim");
+});
+
+test("posthog events are reduced to route patterns, no referrer", async () => {
+  const { sanitizeProperties } = await import("@/lib/analytics");
+  expect(
+    sanitizeProperties({
+      $current_url: "https://ytroast.vercel.app/r/AbC123xyz_-9/claim#key=SECRET",
+      $pathname: "/r/AbC123xyz_-9",
+      $referrer: "https://chat.example/thread/42",
+      $referring_domain: "chat.example",
+      $initial_referrer: "x",
+      $initial_referring_domain: "x",
+      ovenFull: false,
+    }),
+  ).toEqual({ $current_url: "https://ytroast.vercel.app/r/[id]/claim", $pathname: "/r/[id]", ovenFull: false });
+});

@@ -49,6 +49,14 @@ test("upload → private roast → share → secret link → burn", async ({ pag
   await expect(rescued).toHaveURL(url);
   await expect(rescued.getByRole("complementary", { name: "owner controls" })).toBeVisible();
 
+  // Links saved before the key moved into the fragment (?key=) still restore ownership.
+  const legacyContext = await browser.newContext();
+  const legacy = await legacyContext.newPage();
+  await legacy.goto(secretLink.replace("#key=", "?key="));
+  await expect(legacy).toHaveURL(url);
+  await expect(legacy.getByRole("complementary", { name: "owner controls" })).toBeVisible();
+  await legacyContext.close();
+
   // Burn it: everyone now sees the tombstone.
   await page.getByRole("button", { name: "delete" }).click();
   await page.getByRole("button", { name: "burn it" }).click();

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { beforeAll, beforeEach, expect, test } from "vitest";
 import type { Db } from "@/lib/db/client";
 import { generateTemplateRoast } from "@/lib/roast/templates";
-import { clientIp, handleClaim, handleCreate, handleDelete, handleFeedback, handleUpdate, makeVisitorLimit, type Deps } from "@/lib/roasts/http";
+import { clientIp, handleClaim, handleCreate, handleDelete, handleFeedback, handleUpdate, limiterKey, makeVisitorLimit, type Deps } from "@/lib/roasts/http";
 import { memoryStore } from "@/lib/limits/limiter";
 import { getRoastView } from "@/lib/roasts/service";
 import type { Summary } from "@/lib/summary";
@@ -27,7 +27,7 @@ beforeEach(() => {
   allow = true;
   deps = {
     db,
-    limit: async (ip) => (limited.push(ip), allow),
+    limit: { check: async (ip) => (limited.push(ip), allow), consume: async () => {} },
     generate: async (s) => {
       generated.push(s);
       return { roast: generateTemplateRoast(s), generator: "template", ovenFull: false };
@@ -177,8 +177,45 @@ test("clientIp: platform header wins over a spoofable forwarded chain", () => {
   expect(clientIp(h({}))).toBe("unknown");
 });
 
-test("makeVisitorLimit: 3 per day with the memory store", async () => {
+test("makeVisitorLimit: 3 per day with the memory store; check does not consume", async () => {
   const limit = makeVisitorLimit(memoryStore(), 3);
-  expect([await limit("a"), await limit("a"), await limit("a"), await limit("a")]).toEqual([true, true, true, false]);
-  expect(await limit("b")).toBe(true);
+  const used: boolean[] = [];
+  for (let i = 0; i < 4; i++) {
+    used.push(await limit.check("a"));
+    await limit.consume("a");
+  }
+  expect(used).toEqual([true, true, true, false]);
+  expect(await limit.check("a")).toBe(false);
+  expect(await limit.check("b")).toBe(true);
+});
+
+// Review fix 5: IPv6 users share one limit per /64; raw IPs are never used as keys.
+test("limiterKey groups an IPv6 /64 and hashes everything", () => {
+  const a = limiterKey("2001:db8:1:2:aaaa::1");
+  expect(a).toBe(limiterKey("2001:db8:1:2:bbbb:cccc:dddd:eeee"));
+  expect(a).not.toBe(limiterKey("2001:db8:1:3::1"));
+  expect(limiterKey("1.2.3.4")).not.toBe(limiterKey("1.2.3.5"));
+  expect(limiterKey("1.2.3.4")).not.toContain("1.2.3.4");
+  expect(limiterKey("::1")).toMatch(/^[0-9a-f]{32}$/);
+});
+
+// Review fix 9: a template roast ("come back later") must not use up one of the visitor's daily roasts.
+test("create: a template roast because the oven is full does not consume a slot", async () => {
+  const consumed: string[] = [];
+  const res = await handleCreate(new Request("http://test/api/roast", { method: "POST", body: summaryJson, headers: { "x-real-ip": "5.5.5.5" } }), {
+    ...deps,
+    limit: { check: async () => true, consume: async (ip) => void consumed.push(ip) },
+    generate: async (s) => ({ roast: generateTemplateRoast(s), generator: "template", ovenFull: true }),
+  });
+  expect(res.status).toBe(201);
+  expect(consumed).toEqual([]);
+});
+
+test("create: a real roast consumes a slot", async () => {
+  const consumed: string[] = [];
+  await handleCreate(new Request("http://test/api/roast", { method: "POST", body: summaryJson, headers: { "x-real-ip": "6.6.6.6" } }), {
+    ...deps,
+    limit: { check: async () => true, consume: async (ip) => void consumed.push(ip) },
+  });
+  expect(consumed).toEqual(["6.6.6.6"]);
 });

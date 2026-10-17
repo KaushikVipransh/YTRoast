@@ -32,6 +32,24 @@ export function bucket(videos: number): NonNullable<EventProps["videos"]> {
   return "10k+";
 }
 
+/** Roast ids and claim keys live in URLs; analytics only ever see the route pattern, and never the referrer. */
+export function routePattern(path: string): string {
+  return path.replace(/#.*$/, "").replace(/\?.*$/, "").replace(/^\/r\/[^/]+/, "/r/[id]");
+}
+
+const DROPPED = ["$referrer", "$referring_domain", "$initial_referrer", "$initial_referring_domain"];
+
+export function sanitizeProperties(props: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...props };
+  for (const key of DROPPED) delete out[key];
+  if (typeof out.$pathname === "string") out.$pathname = routePattern(out.$pathname);
+  if (typeof out.$current_url === "string") {
+    const url = new URL(out.$current_url);
+    out.$current_url = url.origin + routePattern(url.pathname);
+  }
+  return out;
+}
+
 let client: Promise<PostHog | null> | undefined;
 
 function load(key: string): Promise<PostHog | null> {
@@ -44,6 +62,20 @@ function load(key: string): Promise<PostHog | null> {
         capture_pageview: false,
         capture_pageleave: false,
         disable_session_recording: true,
+        // Explicitly off, so a dashboard toggle can't start collecting page text or element content.
+        capture_dead_clicks: false,
+        capture_heatmaps: false,
+        capture_exceptions: false,
+        capture_performance: false,
+        rageclick: false,
+        disable_surveys: true,
+        advanced_disable_flags: true,
+        // No cookie or stored id: each page load is anonymous.
+        persistence: "memory",
+        before_send: (event) => {
+          if (event) event.properties = sanitizeProperties(event.properties);
+          return event;
+        },
       });
       return posthog;
     })

@@ -1,5 +1,6 @@
 // Route logic as plain (Request, deps) → Response functions, so tests can run them against PGlite
 // with a fake generator. The files under src/app only wire in the real DB and generation chain.
+import { createHash } from "node:crypto";
 import { Ratelimit } from "@upstash/ratelimit";
 import type { Db } from "@/lib/db/client";
 import { utcDay } from "@/lib/limits/budget";
@@ -14,9 +15,29 @@ import { createRoast, deleteRoast, isRoastOwner, setFeedback, setVisibility, typ
 export type Deps = {
   db: Db;
   generate: (s: Summary) => Promise<{ roast: RoastOutput; generator: Generator; ovenFull: boolean }>;
-  /** true = this visitor may create another roast now */
-  limit: (ip: string) => Promise<boolean>;
+  limit: VisitorLimit;
 };
+
+/** check() before generating; consume() only after a real AI roast, so "come back later" templates are free. */
+export type VisitorLimit = { check(ip: string): Promise<boolean>; consume(ip: string): Promise<void> };
+
+/** Expands "::" so an IPv6 address has 8 groups. */
+function ipv6Groups(ip: string): string[] {
+  const [head, tail] = ip.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail !== undefined && tail ? tail.split(":") : [];
+  const fill = ip.includes("::") ? Array(8 - left.length - right.length).fill("0") : [];
+  return [...left, ...fill, ...right].map((g) => g.toLowerCase().replace(/^0+(?=.)/, ""));
+}
+
+/**
+ * The key a visitor is limited by: IPv6 grouped by its /64 (one household or phone hands out a whole /64),
+ * then hashed so raw IP addresses are never stored.
+ */
+export function limiterKey(ip: string): string {
+  const base = ip.includes(":") ? ipv6Groups(ip).slice(0, 4).join(":") + "::/64" : ip;
+  return createHash("sha256").update(`cw-visitor:${base}`).digest("hex").slice(0, 32);
+}
 
 /** On Vercel, x-real-ip is set by the platform; x-forwarded-for can carry client-supplied entries. */
 export function clientIp(req: Request): string {
@@ -28,18 +49,27 @@ export function clientIp(req: Request): string {
 }
 
 /** Roasts per visitor per day (PRD F21). Sliding window on Upstash, a per-UTC-day counter otherwise. Fails open. */
-export function makeVisitorLimit(store: Store, perDay: number): (ip: string) => Promise<boolean> {
+export function makeVisitorLimit(store: Store, perDay: number): VisitorLimit {
   const ratelimit = store.redis
     ? new Ratelimit({ redis: store.redis, limiter: Ratelimit.slidingWindow(perDay, "1 d"), prefix: "cw:rl" })
     : null;
-  return (ip) =>
-    failOpen(
-      ratelimit
-        ? ratelimit.limit(ip).then((r) => r.success)
-        : store.incr(`cw:rl:${ip}:${utcDay(new Date())}`, 172_800).then((n) => n <= perDay),
-      true,
-      "visitor limit",
-    );
+  const dayKey = (ip: string) => `cw:rl:${limiterKey(ip)}:${utcDay(new Date())}`;
+  return {
+    check: (ip) =>
+      failOpen(
+        ratelimit
+          ? ratelimit.getRemaining(limiterKey(ip)).then((r) => r.remaining > 0)
+          : store.get(dayKey(ip)).then((used) => used < perDay),
+        true,
+        "visitor limit check",
+      ),
+    consume: (ip) =>
+      failOpen(
+        ratelimit ? ratelimit.limit(limiterKey(ip)).then(() => undefined) : store.incr(dayKey(ip), 86_400).then(() => undefined),
+        undefined,
+        "visitor limit consume",
+      ),
+  };
 }
 
 const MAX_BODY_BYTES = 64_000;
@@ -72,10 +102,12 @@ export async function handleCreate(req: Request, deps: Deps): Promise<Response> 
   if (!summary) return json({ error: "bad-summary" }, 400);
 
   // Checked after validation so junk requests don't use up a real visitor's slots.
-  if (!(await deps.limit(clientIp(req)))) return json({ error: "rate-limited" }, 429);
+  const ip = clientIp(req);
+  if (!(await deps.limit.check(ip))) return json({ error: "rate-limited" }, 429);
 
   const { roast, generator, ovenFull } = await deps.generate(summary);
   const { id, ownerToken } = await createRoast(deps.db, { summary, roast, generator });
+  if (!ovenFull) await deps.limit.consume(ip);
   return json({ id, ovenFull }, 201, { "set-cookie": ownerCookie(id, ownerToken) });
 }
 

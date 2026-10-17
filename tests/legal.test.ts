@@ -16,6 +16,8 @@ test("privacy page states what goes where (PRD F23, §9)", () => {
     "private until you share it",
     "deleting a roast wipes it from our database immediately",
     "analytics never include what you watched",
+    "for up to two days",
+    "vercel (hosting), supabase (database), upstash (rate limits), posthog (analytics) and sentry (error reports)",
   ]) {
     expect(page).toContain(phrase);
   }

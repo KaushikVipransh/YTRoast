@@ -12,7 +12,13 @@ export function ClaimClient({ id }: { id: string }) {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const key = new URLSearchParams(window.location.hash.slice(1)).get("key") ?? "";
+    // #key= is current; ?key= is how links were made before 2026-10-18 and still has to work.
+    const key =
+      new URLSearchParams(window.location.hash.slice(1)).get("key") ??
+      new URLSearchParams(window.location.search).get("key") ??
+      "";
+    // Take the key out of the address bar and history before anything else (error reporters read location).
+    window.history.replaceState(null, "", window.location.pathname);
     fetch(`/api/roast/${id}/claim`, {
       method: "POST",
       headers: { "content-type": "application/json" },

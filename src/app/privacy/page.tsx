@@ -40,8 +40,13 @@ export default function PrivacyPage() {
         <p>
           we count visits and clicks (like &quot;roast created&quot; or &quot;shared&quot;) to see what works. analytics
           never include what you watched: no titles, channels, searches or roast text. we also record app errors so we
-          can fix them. to stop people draining our free AI quota, we keep a short-lived count of roasts per network
-          address for one day.
+          can fix them. to stop people draining our free AI quota, we keep a count of roasts per network address
+          (scrambled, never the address itself) for up to two days.
+        </p>
+        <p>
+          the services that run the site: vercel (hosting), supabase (database), upstash (rate limits), posthog
+          (analytics) and sentry (error reports). analytics see page types like &quot;a roast page&quot;, never which
+          roast, and keep no cookie. error reports have request data and links stripped before they&apos;re sent.
         </p>
       </Section>
     </LegalPage>
