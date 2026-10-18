@@ -32,6 +32,8 @@ test("keyboard: delete dialog takes focus, Escape closes it; votes have names", 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  // The safe choice gets focus, never the destructive one (review I2): one stray Enter must not burn the roast.
+  await expect(page.getByRole("button", { name: "keep" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible(); // nothing was burned

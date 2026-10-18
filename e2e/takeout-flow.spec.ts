@@ -91,6 +91,10 @@ test("reduced motion shows everything at once and nothing spins", async ({ brows
   expect(opacities.length).toBeGreaterThanOrEqual(6);
   expect(new Set(opacities)).toEqual(new Set(["1"]));
 
+  // The "scroll for your full file" hint doesn't bounce (review I3).
+  const hint = await page.getByText("scroll for your full file").evaluate((el) => el.getAnimations().length);
+  expect(hint).toBe(0);
+
   // The stamp doesn't rotate.
   const running = await page.locator("[data-stamp]").first().evaluate((el) => el.getAnimations().length);
   expect(running).toBe(0);

@@ -32,3 +32,24 @@ test("stat uses the top channel, or plain video count without one", () => {
   expect(storyContent(base, summary).stat).toBe("Jeff Nippard · 1,311 videos");
   expect(storyContent(base, { ...summary, topChannels: [] }).stat).toBe("18,432 videos");
 });
+
+// Review fix C1: the story layout must fit between the 250px safe zones (1920 − 2×250 = 1420px), worst case included.
+test("worst case (140-char headline, three 140-char lines, long personality) fits the height budget", () => {
+  const roast: RoastOutput = {
+    ...base,
+    headline: "w ".repeat(70).trim(),
+    personality: { label: "THE ALGORITHM'S MOST LOYAL HOSTAGE EVER", description: "x" },
+    lines: Array.from({ length: 6 }, (_, i) => ({ text: `${i} ${"long words here ".repeat(9)}`.slice(0, 140), evidence: "x" })),
+  };
+  const story = storyContent(roast, summary);
+  expect(story.estimatedHeight).toBeLessThanOrEqual(1420);
+  expect(story.lineSize).toBeGreaterThanOrEqual(32);
+  expect(story.lines.length).toBeGreaterThanOrEqual(2);
+});
+
+test("a normal roast keeps 3 lines at full size", () => {
+  const story = storyContent(withLines(["you watched it 31 times.", "88 videos in one day.", "nobody needs that much minecraft."]), summary);
+  expect(story.lines).toHaveLength(3);
+  expect(story.lineSize).toBe(44);
+  expect(story.estimatedHeight).toBeLessThanOrEqual(1420);
+});

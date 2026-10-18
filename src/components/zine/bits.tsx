@@ -53,7 +53,7 @@ export function MarkerCircle({ children, evidence = "" }: { children: ReactNode;
 export function EvidenceCard({ label, children, seed, fill = "paper", className = "" }: { label: string; children: ReactNode; seed: string; fill?: "paper" | "butter"; className?: string }) {
   return (
     <div
-      className={`relative rounded-md border-[3px] border-ink p-4 shadow-hard ${fill === "butter" ? "bg-butter" : "bg-paper"} ${className}`}
+      className={`relative rounded-md border-[3px] border-ink p-4 shadow-hard [overflow-wrap:anywhere] ${fill === "butter" ? "bg-butter" : "bg-paper"} ${className}`}
       style={{ transform: `rotate(${seededTilt(seed, 1.5)}deg)` }}
     >
       <p className="font-mono text-[13px] uppercase tracking-wide text-ink-soft">{label}</p>

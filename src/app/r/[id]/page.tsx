@@ -76,7 +76,7 @@ async function RoastPage({ params }: Props) {
           />
         )}
 
-        <p className="label animate-bounce text-center" aria-hidden="true">
+        <p className="label text-center motion-safe:animate-bounce" aria-hidden="true">
           ▼ scroll for your full file
         </p>
       </div>

@@ -63,6 +63,7 @@ body {
   text-transform: uppercase;
   line-height: 0.95;
   letter-spacing: 0.01em;
+  overflow-wrap: anywhere; /* a very long single word must wrap, never be clipped */
 }
 .display .alt {
   color: var(--display-alt, var(--butter));
@@ -70,6 +71,10 @@ body {
 /* On a sky band the default sky fill would vanish: swap to butter / paper. */
 .on-sky {
   --display-fill: var(--butter);
+  --display-alt: var(--paper);
+}
+/* On a butter band the butter .alt fill would vanish: use paper. */
+.on-butter {
   --display-alt: var(--paper);
 }
 .display .hot {

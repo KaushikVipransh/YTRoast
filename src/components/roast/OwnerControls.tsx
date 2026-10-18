@@ -18,6 +18,14 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const keep = useRef<HTMLButtonElement>(null);
+
+  // Focus the safe choice explicitly: autoFocus does nothing on a client-rendered closed dialog, and the
+  // browser would otherwise focus the first button, "burn it".
+  function openBurnDialog() {
+    dialog.current?.showModal();
+    keep.current?.focus();
+  }
   const [vote, setVote] = useState(feedback);
 
   async function call(path: string, init: RequestInit): Promise<boolean> {
@@ -62,8 +70,10 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
   }
 
   async function burn() {
-    if (await call(`/api/roast/${id}`, { method: "DELETE" })) {
-      dialog.current?.close();
+    const burned = await call(`/api/roast/${id}`, { method: "DELETE" });
+    // Close either way: on failure the error note outside the modal must be visible and announced.
+    dialog.current?.close();
+    if (burned) {
       track("roast_deleted");
       router.refresh();
     }
@@ -89,7 +99,7 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
         <a className={buttonClass("secondary")} href={`/r/${id}/story`} download={`caught-watching-${id}.png`}>
           download story
         </a>
-        <Button variant="danger" onClick={() => dialog.current?.showModal()} disabled={busy}>
+        <Button variant="danger" onClick={openBurnDialog} disabled={busy}>
           delete
         </Button>
       </div>
@@ -107,7 +117,7 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
           <Button variant="danger" onClick={burn} disabled={busy}>
             burn it
           </Button>
-          <Button variant="secondary" autoFocus onClick={() => dialog.current?.close()} disabled={busy}>
+          <Button ref={keep} variant="secondary" onClick={() => dialog.current?.close()} disabled={busy}>
             keep
           </Button>
         </div>
@@ -124,7 +134,7 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
       </div>
 
       <details className="rounded border-[3px] border-dashed border-ink p-3">
-        <summary className="label min-h-8 cursor-pointer">your secret link</summary>
+        <summary className="label flex min-h-12 cursor-pointer items-center">your secret link</summary>
         <p className="mt-2 text-sm">save this. it&apos;s the only way back in if you clear cookies.</p>
         <p className="mt-1 break-all font-mono text-xs" data-testid="secret-link">
           {secretLink}

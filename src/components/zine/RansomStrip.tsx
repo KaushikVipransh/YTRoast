@@ -6,7 +6,7 @@ export function RansomStrip({ children, index, className = "" }: { children: Rea
   const fill = index % 3 === 1 ? "bg-butter" : "bg-paper";
   return (
     <div
-      className={`relative border-y-[3px] border-ink px-5 py-3 text-[clamp(18px,4.8vw,26px)] font-semibold leading-snug shadow-[4px_4px_0_var(--ink)] [clip-path:polygon(0_6%,2%_0,98%_4%,100%_0,99%_50%,100%_100%,97%_96%,3%_100%,0_94%,1%_50%)] ${fill} ${className}`}
+      className={`relative border-y-[3px] border-ink px-5 py-3 text-[clamp(18px,4.8vw,26px)] font-semibold leading-snug [overflow-wrap:anywhere] shadow-[4px_4px_0_var(--ink)] [clip-path:polygon(0_6%,2%_0,98%_4%,100%_0,99%_50%,100%_100%,97%_96%,3%_100%,0_94%,1%_50%)] ${fill} ${className}`}
       style={{ transform: `rotate(${tilt}deg)` }}
     >
       {children}

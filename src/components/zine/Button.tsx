@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ComponentProps } from "react";
+import type { AnchorHTMLAttributes, ComponentProps } from "react";
 
 type Variant = "primary" | "secondary" | "danger";
 
@@ -12,9 +12,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 export const buttonClass = (variant: Variant) =>
-  `label inline-flex min-h-14 items-center justify-center gap-2 rounded-[14px] border-[3px] px-6 text-lg text-ink shadow-hard transition-[transform,box-shadow] duration-100 hover:-translate-y-px active:translate-x-[3px] active:translate-y-[3px] active:shadow-press disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]}`;
+  `label inline-flex min-h-14 items-center justify-center gap-2 rounded-[14px] border-[3px] px-6 text-lg text-ink shadow-hard active:shadow-press motion-safe:transition-[transform,box-shadow] motion-safe:duration-100 motion-safe:hover:-translate-y-px motion-safe:active:translate-x-[3px] motion-safe:active:translate-y-[3px] disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]}`;
 
-export function Button({ variant, className = "", ...props }: { variant: Variant } & ButtonHTMLAttributes<HTMLButtonElement>) {
+export function Button({ variant, className = "", ...props }: { variant: Variant } & ComponentProps<"button">) {
   return <button type="button" {...props} className={`${buttonClass(variant)} ${className}`} />;
 }
 
