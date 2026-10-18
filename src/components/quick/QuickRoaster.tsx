@@ -1,19 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/zine/Button";
 import { VhsLoader } from "@/components/zine/VhsLoader";
 import { track } from "@/lib/analytics";
 import { buildQuickSummary } from "@/lib/quick/build";
-import { requestToken, revokeToken } from "@/lib/quick/gis";
-import { quickErrorMessage, type QuickErrorCode } from "@/lib/quick/messages";
+import { prepareTokenClient, revokeToken, type TokenClient } from "@/lib/quick/gis";
+import { quickErrorMessage, quickServerMessage, type QuickErrorCode } from "@/lib/quick/messages";
 import { YouTubeError, fetchYouTubeData } from "@/lib/quick/youtube";
-import { uploadErrorMessage } from "@/lib/upload-messages";
 
-type State = { kind: "idle" } | { kind: "signing-in" } | { kind: "fetching" } | { kind: "roasting"; likes: number; subs: number } | { kind: "error"; message: string };
+type State =
+  | { kind: "idle" }
+  | { kind: "signing-in" }
+  | { kind: "fetching" }
+  | { kind: "roasting"; likes: number; subs: number }
+  | { kind: "error"; message: string };
 
 const STATUS = ["counting your likes…", "judging your subscriptions…", "reading your playlist names out loud…", "writing the roast…"];
+const TOKEN_ERRORS = ["denied", "popup_closed", "popup_blocked", "network"];
 
 /** The official Google "G", unmodified, as Google's sign-in branding guidelines require. */
 function GoogleG() {
@@ -29,8 +34,26 @@ function GoogleG() {
 
 export function QuickRoaster({ clientId }: { clientId: string }) {
   const router = useRouter();
+  const client = useRef<TokenClient | null>(null);
+  const retry = useRef<HTMLButtonElement>(null);
+  const [ready, setReady] = useState(false);
   const [state, setState] = useState<State>({ kind: "idle" });
   const [tick, setTick] = useState(0);
+
+  // Prepare Google's token client up front so the popup can open synchronously inside the tap.
+  useEffect(() => {
+    let alive = true;
+    prepareTokenClient(clientId)
+      .then((c) => {
+        if (!alive) return;
+        client.current = c;
+        setReady(true);
+      })
+      .catch(() => alive && setState({ kind: "error", message: quickErrorMessage("network") }));
+    return () => {
+      alive = false;
+    };
+  }, [clientId]);
 
   useEffect(() => {
     if (state.kind !== "roasting") return;
@@ -38,35 +61,57 @@ export function QuickRoaster({ clientId }: { clientId: string }) {
     return () => clearInterval(timer);
   }, [state.kind]);
 
-  async function start() {
-    if (state.kind !== "idle" && state.kind !== "error") return;
+  // Errors replace the button that had focus: move focus to the way forward.
+  useEffect(() => {
+    if (state.kind === "error") retry.current?.focus();
+  }, [state]);
+
+  function start() {
+    const c = client.current;
+    if (!c || (state.kind !== "idle" && state.kind !== "error")) return;
+    const token = c.request(); // synchronous: still inside the user's tap
+    void run(token);
+  }
+
+  async function run(tokenPromise: Promise<string>) {
     setState({ kind: "signing-in" });
-    track("upload_started");
-    let token: string | null = null;
+    track("upload_started", { path: "quick" });
     try {
-      token = await requestToken(clientId);
+      const token = await tokenPromise;
       setState({ kind: "fetching" });
-      const data = await fetchYouTubeData(token);
+      let data;
+      try {
+        data = await fetchYouTubeData(token);
+      } finally {
+        // Revoke as soon as the likes are read, before the (slow) roast request.
+        revokeToken(token);
+      }
       const summary = buildQuickSummary(data);
       setTick(0);
       setState({ kind: "roasting", likes: summary.totals.likes, subs: summary.totals.subscriptions });
 
-      const res = await fetch("/api/roast", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(summary) });
+      let res: Response;
+      try {
+        res = await fetch("/api/roast", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(summary) });
+      } catch {
+        return setState({ kind: "error", message: quickServerMessage(0) });
+      }
       if (res.status !== 201) {
-        track("upload_failed", { status: res.status });
-        return setState({ kind: "error", message: uploadErrorMessage(res.status) });
+        track("upload_failed", { status: res.status, path: "quick" });
+        return setState({ kind: "error", message: quickServerMessage(res.status) });
       }
       const { id, ovenFull } = (await res.json()) as { id: string; ovenFull: boolean };
-      track("roast_created", { ovenFull });
+      track("roast_created", { ovenFull, path: "quick" });
       router.push(`/r/${id}`);
     } catch (err) {
       const code: QuickErrorCode =
-        err instanceof YouTubeError ? err.code : err instanceof Error && ["denied", "popup_closed", "network"].includes(err.message) ? (err.message as QuickErrorCode) : "network";
-      track("upload_failed", { code });
+        err instanceof YouTubeError
+          ? err.code
+          : err instanceof Error && TOKEN_ERRORS.includes(err.message)
+            ? (err.message as QuickErrorCode)
+            : "network";
+      track("upload_failed", { code, path: "quick" });
       setState({ kind: "error", message: quickErrorMessage(code) });
-    } finally {
-      // The token was only ever needed for the few API calls above.
-      if (token) revokeToken(token);
     }
   }
 
@@ -88,7 +133,8 @@ export function QuickRoaster({ clientId }: { clientId: string }) {
         <button
           type="button"
           onClick={start}
-          className="flex min-h-12 items-center gap-3 rounded-md border border-[#747775] bg-white px-4 font-[Roboto,Arial,sans-serif] text-[15px] font-medium text-[#1F1F1F]"
+          disabled={!ready}
+          className="flex min-h-12 items-center gap-3 rounded-md border border-[#747775] bg-white px-4 font-[Roboto,Arial,sans-serif] text-[15px] font-medium text-[#1F1F1F] disabled:opacity-60"
         >
           <GoogleG />
           Sign in with Google
@@ -104,7 +150,7 @@ export function QuickRoaster({ clientId }: { clientId: string }) {
             objection
           </p>
           <p className="font-semibold">{state.message}</p>
-          <Button variant="secondary" onClick={start}>
+          <Button ref={retry} variant="secondary" onClick={start} disabled={!ready}>
             try again
           </Button>
         </div>

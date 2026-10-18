@@ -5,6 +5,7 @@ export type FakeOptions = {
   playlists?: number;
   itemsPerPlaylist?: number;
   status?: number; // force every request to fail with this status
+  hang?: boolean; // never answer (until aborted)
   reason?: string; // error reason for failures
 };
 
@@ -16,12 +17,15 @@ export function fakeYouTube(opts: FakeOptions = {}) {
     const start = Number(url.searchParams.get("pageToken") ?? 0);
     const size = Number(url.searchParams.get("maxResults") ?? 5);
     const items = Array.from({ length: Math.max(0, Math.min(size, total - start)) }, (_, k) => make(start + k));
-    return { items, ...(start + size < total ? { nextPageToken: String(start + size) } : {}) };
+    return { items, pageInfo: { totalResults: total }, ...(start + size < total ? { nextPageToken: String(start + size) } : {}) };
   };
 
   const fetchFn = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = new URL(String(input));
     calls.push({ url, auth: new Headers(init?.headers).get("authorization") });
+    if (opts.hang) {
+      return new Promise<Response>((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+    }
     if (opts.status) {
       return Response.json({ error: { code: opts.status, errors: [{ reason: opts.reason ?? "forbidden" }] } }, { status: opts.status });
     }

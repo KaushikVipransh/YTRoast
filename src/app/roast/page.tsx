@@ -59,7 +59,7 @@ export default function RoastPage() {
           </nav>
         )}
 
-        <Track event="guide_view" />
+        <Track event="guide_view" path="takeout" />
         <Uploader />
         <p className="font-mono text-sm">
           🔒 {PRIVACY_LINE}{" "}

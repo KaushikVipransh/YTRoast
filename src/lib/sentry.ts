@@ -1,6 +1,8 @@
 import type { ErrorEvent } from "@sentry/nextjs";
 
 const withoutFragment = (url: string) => url.replace(/#.*$/, "");
+// Breadcrumb URLs lose their query too: page tokens, playlist ids, and any token a revoke call might carry.
+const withoutQuery = (url: string) => url.replace(/[?#].*$/, "");
 
 /**
  * Error reports must never carry watch data or an owner key:
@@ -26,7 +28,7 @@ export function scrubEvent(event: ErrorEvent): ErrorEvent {
   for (const crumb of event.breadcrumbs ?? []) {
     if (!crumb.data) continue;
     for (const key of ["from", "to", "url"]) {
-      if (typeof crumb.data[key] === "string") crumb.data[key] = withoutFragment(crumb.data[key]);
+      if (typeof crumb.data[key] === "string") crumb.data[key] = withoutQuery(crumb.data[key]);
     }
   }
   delete event.extra;

@@ -39,7 +39,7 @@ export async function createRoast(
 ): Promise<{ id: string; ownerToken: string }> {
   const id = nanoid(ID_LENGTH);
   const ownerToken = newOwnerToken();
-  await db.insert(roasts).values({ id, ownerHash: hashToken(ownerToken), source: "takeout", ...input });
+  await db.insert(roasts).values({ id, ownerHash: hashToken(ownerToken), source: input.summary.source, ...input });
   return { id, ownerToken };
 }
 

@@ -21,7 +21,7 @@ test("track is a silent no-op without a PostHog key", () => {
 });
 
 // Analytics must never carry watch data: every track() call may only use the allowed property names.
-const ALLOWED = new Set(["generator", "status", "code", "videos", "value", "ovenFull"]);
+const ALLOWED = new Set(["generator", "status", "code", "videos", "value", "ovenFull", "path"]);
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -88,4 +88,10 @@ test("posthog events are reduced to route patterns, no referrer", async () => {
       ovenFull: false,
     }),
   ).toEqual({ $current_url: "https://ytroast.vercel.app/r/[id]/claim", $pathname: "/r/[id]", ovenFull: false });
+});
+
+test("sentry scrubber drops query strings from breadcrumb urls (tokens, page tokens, playlist ids)", async () => {
+  const { scrubEvent } = await import("@/lib/sentry");
+  const event = scrubEvent({ type: undefined, breadcrumbs: [{ category: "fetch", data: { url: "https://oauth2.googleapis.com/revoke?token=SECRET" } }] });
+  expect(JSON.stringify(event)).not.toContain("SECRET");
 });

@@ -41,15 +41,15 @@ export function Uploader() {
     // One roast at a time: drops while busy are ignored, so a double drop can't create two roasts.
     if (!file || busy) return;
     setState({ kind: "reading" });
-    track("upload_started");
+    track("upload_started", { path: "takeout" });
 
     const result = await processInWorker(file).catch(() => null);
     if (!result) {
-      track("upload_failed", { code: "unknown" });
+      track("upload_failed", { code: "unknown", path: "takeout" });
       return setState({ kind: "error", message: errorMessage("unknown", []) });
     }
     if (!result.ok) {
-      track("upload_failed", { code: result.code });
+      track("upload_failed", { code: result.code, path: "takeout" });
       return setState({ kind: "error", message: errorMessage(result.code, result.found) });
     }
 
@@ -62,11 +62,11 @@ export function Uploader() {
         body: JSON.stringify(result.summary),
       });
       if (res.status !== 201) {
-        track("upload_failed", { status: res.status });
+        track("upload_failed", { status: res.status, path: "takeout" });
         return setState({ kind: "error", message: uploadErrorMessage(res.status) });
       }
       const { id, ovenFull } = (await res.json()) as { id: string; ovenFull: boolean };
-      track("roast_created", { ovenFull, videos: bucket(result.counts.videos) });
+      track("roast_created", { ovenFull, videos: bucket(result.counts.videos), path: "takeout" });
       router.push(`/r/${id}`);
     } catch {
       setState({ kind: "error", message: uploadErrorMessage(0) });

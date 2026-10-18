@@ -23,6 +23,8 @@ export type EventProps = {
   videos?: "<50" | "50-1k" | "1k-10k" | "10k+";
   value?: 1 | -1;
   ovenFull?: boolean;
+  /** Which roast path the event belongs to, so the quick and full funnels can be measured apart (PRD §6). */
+  path?: "quick" | "takeout";
 };
 
 export function bucket(videos: number): NonNullable<EventProps["videos"]> {

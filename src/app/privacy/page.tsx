@@ -28,6 +28,18 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="the quick roast (google sign-in)">
+        <p>
+          if you use the quick roast, you sign in with google and give read-only youtube access. it can&apos;t post,
+          change or delete anything. the access token stays in your browser and is revoked as soon as your likes are
+          read. it never reaches our servers.
+        </p>
+        <p>
+          your browser builds a summary from your liked video titles, channel names, subscription names and playlist names.
+          only that summary is sent to us and to the AI that writes the roast, the same way as a takeout summary.
+        </p>
+      </Section>
+
       <Section title="deleting">
         <p>
           deleting a roast wipes it from our database immediately. the link then says the file was burned. ownership is

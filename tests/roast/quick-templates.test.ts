@@ -10,6 +10,7 @@ import type { QuickSummary } from "@/lib/summary";
 
 const fixture: QuickSummary = JSON.parse(readFileSync(join(__dirname, "..", "fixtures", "quick-summary.json"), "utf8"));
 const thin = buildQuickSummary({
+  totals: { likes: 3, subscriptions: 1, playlists: 0 },
   likes: [
     { title: "Baby Shark Dance", videoId: "XqZsoesa55w", channel: "Pinkfong" },
     { title: "Despacito", videoId: "kJQP7kiw5Fk", channel: "Luis Fonsi" },
@@ -18,7 +19,7 @@ const thin = buildQuickSummary({
   subscriptions: [{ name: "Pinkfong", since: "2017-06-01T00:00:00Z" }],
   playlists: [],
 });
-const empty = buildQuickSummary({ likes: [], subscriptions: [], playlists: [] });
+const empty = buildQuickSummary({ totals: { likes: 0, subscriptions: 0, playlists: 0 }, likes: [], subscriptions: [], playlists: [] });
 
 test.each([
   ["fixture", fixture],
@@ -39,4 +40,10 @@ test("a quick prompt says it's likes and subscriptions, not watch history", () =
   expect(p).toContain("QUICK ROAST");
   expect(p).toContain("not their watch history");
   expect(buildRoastPrompt(fixture)).toContain(JSON.stringify(fixture));
+});
+
+// Review minor (upgraded): the thin-data paragraph must fit a quick roast too.
+test("a thin quick prompt doesn't talk about turned-off watch history", () => {
+  expect(buildRoastPrompt(empty)).not.toContain("history they turned off");
+  expect(buildRoastPrompt(empty)).toContain("THIN DATA");
 });

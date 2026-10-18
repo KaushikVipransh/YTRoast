@@ -47,3 +47,15 @@ test("network failure → network", async () => {
   };
   await expect(fetchYouTubeData("t", failing)).rejects.toMatchObject({ code: "network" });
 });
+
+// Review fix 2: totals are the real numbers (pageInfo.totalResults), not the fetch caps.
+test("totals come from pageInfo.totalResults even when fetching is capped", async () => {
+  const data = await fetchYouTubeData("t", fakeYouTube({ likes: 3000, subs: 1200, playlists: 40, itemsPerPlaylist: 5 }).fetchFn);
+  expect(data.totals).toEqual({ likes: 3000, subscriptions: 1200, playlists: 40 });
+  expect(data.likes).toHaveLength(500);
+});
+
+// Review minor (upgraded): a hung request must not leave the user on a spinner forever.
+test("a hung request times out as a network error", async () => {
+  await expect(fetchYouTubeData("t", fakeYouTube({ hang: true }).fetchFn, 50)).rejects.toMatchObject({ code: "network" });
+});

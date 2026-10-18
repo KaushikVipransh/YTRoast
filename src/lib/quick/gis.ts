@@ -1,8 +1,14 @@
 // Google Identity Services token client (tech stack: no auth library, no server session). The access token
 // lives only in memory in this tab, is used for a handful of read-only YouTube API calls, then revoked.
+//
+// Google's documented pattern: load GIS and create the token client ahead of time, then call
+// requestAccessToken() synchronously inside the click handler. Opening the popup after an await
+// (e.g. loading the script on click) gets it blocked by Safari/iOS as "not from a user gesture".
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 const SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
+
+export type TokenErrorCode = "denied" | "popup_closed" | "popup_blocked";
 
 type TokenResponse = { access_token?: string; error?: string };
 type GoogleOAuth = {
@@ -24,31 +30,52 @@ let loading: Promise<GoogleOAuth> | undefined;
 
 function loadGis(): Promise<GoogleOAuth> {
   loading ??= new Promise<GoogleOAuth>((resolve, reject) => {
+    const fail = () => {
+      loading = undefined; // let a later attempt retry instead of caching the failure
+      reject(new Error("network"));
+    };
     const script = document.createElement("script");
     script.src = GIS_SRC;
     script.async = true;
-    script.onload = () => (window.google?.accounts?.oauth2 ? resolve(window.google.accounts.oauth2) : reject(new Error("network")));
-    script.onerror = () => {
-      loading = undefined;
-      reject(new Error("network"));
-    };
+    script.onload = () => (window.google?.accounts?.oauth2 ? resolve(window.google.accounts.oauth2) : fail());
+    script.onerror = fail;
     document.head.appendChild(script);
   });
   return loading;
 }
 
-/** Opens Google's consent popup; resolves with an access token or rejects with "denied" | "popup_closed" | "network". */
-export async function requestToken(clientId: string): Promise<string> {
+export type TokenClient = {
+  /** Must be called synchronously from a click/tap handler. Resolves with an access token. */
+  request(): Promise<string>;
+};
+
+/** Loads GIS and prepares a token client; call on mount, long before the user taps. */
+export async function prepareTokenClient(clientId: string): Promise<TokenClient> {
   const oauth2 = await loadGis();
-  return new Promise<string>((resolve, reject) => {
-    const client = oauth2.initTokenClient({
-      client_id: clientId,
-      scope: SCOPE,
-      callback: (response) => (response.access_token ? resolve(response.access_token) : reject(new Error("denied"))),
-      error_callback: (error) => reject(new Error(error.type === "popup_closed" ? "popup_closed" : "denied")),
-    });
-    client.requestAccessToken({ prompt: "" });
+  let pending: { resolve: (token: string) => void; reject: (err: Error) => void } | null = null;
+  const settle = (fn: (p: NonNullable<typeof pending>) => void) => {
+    if (pending) fn(pending);
+    pending = null;
+  };
+  const client = oauth2.initTokenClient({
+    client_id: clientId,
+    scope: SCOPE,
+    callback: (response) =>
+      settle((p) => (response.access_token ? p.resolve(response.access_token) : p.reject(new Error("denied")))),
+    error_callback: (error) =>
+      settle((p) =>
+        p.reject(new Error(error.type === "popup_failed_to_open" ? "popup_blocked" : error.type === "popup_closed" ? "popup_closed" : "denied")),
+      ),
   });
+  return {
+    request() {
+      const token = new Promise<string>((resolve, reject) => {
+        pending = { resolve, reject };
+      });
+      client.requestAccessToken({ prompt: "" });
+      return token;
+    },
+  };
 }
 
 export function revokeToken(token: string): void {

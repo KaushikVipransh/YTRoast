@@ -51,8 +51,8 @@ export function AbandonedSpread({ s }: { s: QuickSummary }) {
     <>
       <SpreadHead title={<>subscriptions you <span className="hot">abandoned</span></>} caption="subscribed, then never liked a single video. they're still waiting." />
       <ul className="flex flex-wrap gap-3">
-        {s.subscriptions.abandoned.map((name) => (
-          <li key={name} className="rounded border-[3px] border-ink bg-paper px-3 py-1 font-semibold shadow-press line-through decoration-marker decoration-[3px]">
+        {s.subscriptions.abandoned.map((name, i) => (
+          <li key={i} className="rounded border-[3px] border-ink bg-paper px-3 py-1 font-semibold shadow-press line-through decoration-marker decoration-[3px]">
             {name}
           </li>
         ))}
@@ -71,14 +71,14 @@ export function PlaylistsSpread({ s }: { s: QuickSummary }) {
     <>
       <SpreadHead title={<>playlists <span className="alt">exposed</span></>} caption="you named these yourself." />
       <ul className="grid gap-6 sm:grid-cols-2">
-        {s.playlists.map((p) => (
-          <li key={p.title}>
+        {s.playlists.map((p, i) => (
+          <li key={i}>
             <EvidenceCard label={`${n(p.count)} videos`} seed={p.title}>
               <p className="label text-xl">&ldquo;{p.title}&rdquo;</p>
               {p.sampleTitles.length > 0 && (
                 <ul className="mt-2 list-disc pl-5 text-sm">
-                  {p.sampleTitles.map((t) => (
-                    <li key={t}>{t}</li>
+                  {p.sampleTitles.map((t, k) => (
+                    <li key={k}>{t}</li>
                   ))}
                 </ul>
               )}

@@ -7,6 +7,8 @@ const MAX_PAGES = 10; // 500 likes, 500 subscriptions
 const MAX_PLAYLISTS = 10;
 
 export type YouTubeData = {
+  /** The real totals (pageInfo.totalResults), which can exceed what was fetched under the page caps. */
+  totals: { likes: number; subscriptions: number; playlists: number };
   likes: { title: string; videoId: string; channel: string | null }[];
   subscriptions: { name: string; since: string }[];
   playlists: { title: string; count: number; items: string[] }[];
@@ -23,17 +25,22 @@ export class YouTubeError extends Error {
   }
 }
 
-type Page<T> = { items?: T[]; nextPageToken?: string };
+type Page<T> = { items?: T[]; nextPageToken?: string; pageInfo?: { totalResults?: number } };
+const TIMEOUT_MS = 15_000;
 
-async function get<T>(fetchFn: typeof fetch, token: string, path: string, params: Record<string, string>): Promise<Page<T>> {
+async function get<T>(fetchFn: typeof fetch, token: string, path: string, params: Record<string, string>, timeoutMs: number): Promise<Page<T>> {
   const url = new URL(`${API}/${path}`);
   for (const [k, v] of Object.entries({ ...params, maxResults: String(PAGE) })) url.searchParams.set(k, v);
   let res: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     // The token goes in the header only: URLs end up in logs and history.
-    res = await fetchFn(url, { headers: { authorization: `Bearer ${token}` } });
+    res = await fetchFn(url, { headers: { authorization: `Bearer ${token}` }, signal: controller.signal });
   } catch (err) {
     throw new YouTubeError("network", err instanceof Error ? err.message : undefined);
+  } finally {
+    clearTimeout(timer);
   }
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: { errors?: { reason?: string }[] } } | null;
@@ -44,17 +51,26 @@ async function get<T>(fetchFn: typeof fetch, token: string, path: string, params
   return (await res.json()) as Page<T>;
 }
 
-/** Follows nextPageToken up to `maxPages` pages. */
-async function all<T>(fetchFn: typeof fetch, token: string, path: string, params: Record<string, string>, maxPages: number): Promise<T[]> {
-  const out: T[] = [];
+/** Follows nextPageToken up to `maxPages` pages; also reports the list's real total. */
+async function all<T>(
+  fetchFn: typeof fetch,
+  token: string,
+  path: string,
+  params: Record<string, string>,
+  maxPages: number,
+  timeoutMs: number,
+): Promise<{ items: T[]; total: number }> {
+  const items: T[] = [];
+  let total: number | undefined;
   let pageToken: string | undefined;
   for (let i = 0; i < maxPages; i++) {
-    const page = await get<T>(fetchFn, token, path, pageToken ? { ...params, pageToken } : params);
-    out.push(...(page.items ?? []));
+    const page = await get<T>(fetchFn, token, path, pageToken ? { ...params, pageToken } : params, timeoutMs);
+    items.push(...(page.items ?? []));
+    total ??= page.pageInfo?.totalResults;
     pageToken = page.nextPageToken;
     if (!pageToken) break;
   }
-  return out;
+  return { items, total: Math.max(total ?? 0, items.length) };
 }
 
 type Video = { id: string; snippet?: { title?: string; channelTitle?: string } };
@@ -62,21 +78,22 @@ type Subscription = { snippet?: { title?: string; publishedAt?: string } };
 type Playlist = { id: string; snippet?: { title?: string }; contentDetails?: { itemCount?: number } };
 type PlaylistItem = { snippet?: { title?: string } };
 
-export async function fetchYouTubeData(token: string, fetchFn: typeof fetch = fetch): Promise<YouTubeData> {
+export async function fetchYouTubeData(token: string, fetchFn: typeof fetch = fetch, timeoutMs = TIMEOUT_MS): Promise<YouTubeData> {
   const [videos, subs, playlists] = await Promise.all([
-    all<Video>(fetchFn, token, "videos", { myRating: "like", part: "snippet" }, MAX_PAGES),
-    all<Subscription>(fetchFn, token, "subscriptions", { mine: "true", part: "snippet" }, MAX_PAGES),
-    all<Playlist>(fetchFn, token, "playlists", { mine: "true", part: "snippet,contentDetails" }, 1),
+    all<Video>(fetchFn, token, "videos", { myRating: "like", part: "snippet" }, MAX_PAGES, timeoutMs),
+    all<Subscription>(fetchFn, token, "subscriptions", { mine: "true", part: "snippet" }, MAX_PAGES, timeoutMs),
+    all<Playlist>(fetchFn, token, "playlists", { mine: "true", part: "snippet,contentDetails" }, 1, timeoutMs),
   ]);
 
-  const kept = playlists.slice(0, MAX_PLAYLISTS);
+  const kept = playlists.items.slice(0, MAX_PLAYLISTS);
   const items = await Promise.all(
-    kept.map((p) => all<PlaylistItem>(fetchFn, token, "playlistItems", { playlistId: p.id, part: "snippet" }, 1)),
+    kept.map((p) => all<PlaylistItem>(fetchFn, token, "playlistItems", { playlistId: p.id, part: "snippet" }, 1, timeoutMs).then((r) => r.items)),
   );
 
   return {
-    likes: videos.map((v) => ({ title: v.snippet?.title ?? "", videoId: v.id, channel: v.snippet?.channelTitle?.trim() || null })),
-    subscriptions: subs.map((s) => ({ name: s.snippet?.title ?? "", since: s.snippet?.publishedAt ?? "" })),
+    totals: { likes: videos.total, subscriptions: subs.total, playlists: playlists.total },
+    likes: videos.items.map((v) => ({ title: v.snippet?.title ?? "", videoId: v.id, channel: v.snippet?.channelTitle?.trim() || null })),
+    subscriptions: subs.items.map((s) => ({ name: s.snippet?.title ?? "", since: s.snippet?.publishedAt ?? "" })),
     playlists: kept.map((p, i) => ({
       title: p.snippet?.title ?? "",
       count: p.contentDetails?.itemCount ?? items[i].length,

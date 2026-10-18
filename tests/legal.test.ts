@@ -17,6 +17,9 @@ test("privacy page states what goes where (PRD F23, §9)", () => {
     "deleting a roast wipes it from our database immediately",
     "analytics never include what you watched",
     "for up to two days",
+    "read-only youtube access",
+    "the access token stays in your browser and is revoked as soon as your likes are read",
+    "liked video titles, channel names, subscription names and playlist names",
     "vercel (hosting), supabase (database), upstash (rate limits), posthog (analytics) and sentry (error reports)",
   ]) {
     expect(page).toContain(phrase);

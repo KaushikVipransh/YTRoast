@@ -26,7 +26,7 @@ export default function QuickRoastPage() {
           <p className="text-xl font-semibold">30 seconds · from your likes &amp; subs · mild-ish</p>
         </header>
 
-        <Track event="guide_view" />
+        <Track event="guide_view" path="quick" />
         {clientId ? (
           <QuickRoaster clientId={clientId} />
         ) : (

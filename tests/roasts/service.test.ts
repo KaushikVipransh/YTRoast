@@ -86,3 +86,11 @@ test("deleted private roast: owner sees burned, strangers see missing", async ()
   expect(await getRoastView(db, id, ownerToken)).toEqual({ kind: "deleted" });
   expect(await getRoastView(db, id, null)).toEqual({ kind: "missing" });
 });
+
+// Phase 3 review fix 1: the source column must say which path made the roast (it outlives a delete).
+test("a quick roast is stored with source 'quick'", async () => {
+  const quick = JSON.parse(readFileSync(join(__dirname, "..", "fixtures", "quick-summary.json"), "utf8"));
+  const { id } = await createRoast(db, { summary: quick, roast: generateTemplateRoast(quick), generator: "template" });
+  const [row] = await db.select().from(roasts).where(eq(roasts.id, id));
+  expect(row.source).toBe("quick");
+});

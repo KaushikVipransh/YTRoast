@@ -36,7 +36,9 @@ export function buildRoastPrompt(summary: Summary): string {
   }
   if (summary.thinData) {
     parts.push(
-      "THIN DATA: there's almost nothing here. that IS the joke. roast them for the emptiness, the lurking, the history they turned off, whatever the tiny bit of data says about them.",
+      summary.source === "quick"
+        ? "THIN DATA: they barely like or follow anything. that IS the joke. roast them for the lurking, the commitment issues, whatever the tiny bit of data says about them."
+        : "THIN DATA: there's almost nothing here. that IS the joke. roast them for the emptiness, the lurking, the history they turned off, whatever the tiny bit of data says about them.",
     );
   }
   parts.push(JSON.stringify(summary));

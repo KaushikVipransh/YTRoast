@@ -46,7 +46,8 @@ export function buildQuickSummary(data: YouTubeData): QuickSummary {
   return {
     version: 1,
     source: "quick",
-    totals: { likes: data.likes.length, subscriptions: data.subscriptions.length, playlists: data.playlists.length },
+    // Real totals: heavy accounts have more than the 500 likes/subs we fetch.
+    totals: { ...data.totals },
     topChannels,
     likedSamples,
     subscriptions: { oldest, abandoned },
@@ -55,6 +56,6 @@ export function buildQuickSummary(data: YouTubeData): QuickSummary {
       count: p.count,
       sampleTitles: p.items.slice(0, PLAYLIST_TITLES).map(clip),
     })),
-    thinData: data.likes.length + data.subscriptions.length < THIN_BELOW,
+    thinData: data.totals.likes + data.totals.subscriptions < THIN_BELOW,
   };
 }
