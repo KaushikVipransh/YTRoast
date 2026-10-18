@@ -104,7 +104,7 @@ export function OwnerControls({ id, visibility, feedback, shareUrl, secretLink }
         </p>
         <p className="mt-2">this wipes the roast for good. the link will say it was burned.</p>
         <div className="mt-5 flex gap-3">
-          <Button variant="danger" className="bg-marker" onClick={burn} disabled={busy}>
+          <Button variant="danger" onClick={burn} disabled={busy}>
             burn it
           </Button>
           <Button variant="secondary" autoFocus onClick={() => dialog.current?.close()} disabled={busy}>
