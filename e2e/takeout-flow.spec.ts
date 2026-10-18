@@ -76,3 +76,32 @@ test("wrong file → specific error, no roast", async ({ page }) => {
   await expect(page.getByText("that's not your watch history, that's package.json.")).toBeVisible();
   await expect(page).toHaveURL(/\/roast$/);
 });
+
+test("reduced motion shows everything at once and nothing spins", async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto("/roast");
+  await page.locator("input[type=file]").setInputFiles({ name: "takeout.zip", mimeType: "application/zip", buffer: takeoutZip });
+  await expect(page).toHaveURL(/\/r\/[A-Za-z0-9_-]{12}$/, { timeout: 90_000 });
+
+  // Every roast line is fully opaque immediately, including the ones below the fold.
+  const lines = page.locator("[data-roast-line]");
+  await expect(lines.first()).toBeVisible();
+  const opacities = await lines.evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  expect(opacities.length).toBeGreaterThanOrEqual(6);
+  expect(new Set(opacities)).toEqual(new Set(["1"]));
+
+  // The stamp doesn't rotate.
+  const running = await page.locator("[data-stamp]").first().evaluate((el) => el.getAnimations().length);
+  expect(running).toBe(0);
+  await context.close();
+});
+
+test("with motion allowed the stamp does spin (guards the reduced-motion test from passing vacuously)", async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: "no-preference" });
+  const page = await context.newPage();
+  await page.goto("/");
+  const running = await page.locator("[data-stamp]").first().evaluate((el) => el.getAnimations().length);
+  expect(running).toBeGreaterThan(0);
+  await context.close();
+});
