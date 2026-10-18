@@ -10,6 +10,7 @@ import {
   SearchesSpread,
   TopChannelsSpread,
 } from "@/components/report/spreads";
+import { AbandonedSpread, PlaylistsSpread, QuickNumbersSpread, QuickTopChannelsSpread, WarmUpSpread } from "@/components/report/quick-spreads";
 import { Band } from "@/components/zine/Band";
 import type { RoastOutput } from "@/lib/roast/schema";
 import type { QuickSummary, Summary, TakeoutSummary } from "@/lib/summary";
@@ -22,9 +23,19 @@ export function ReportView({ summary, roast, isOwner }: { summary: Summary; roas
   return <TakeoutReport summary={summary} roast={roast} isOwner={isOwner} />;
 }
 
-/** Quick-roast spreads: filled in by Phase 3 Task 4. */
-function QuickReport({ isOwner }: { summary: QuickSummary; roast: RoastOutput; isOwner: boolean }) {
-  return <Spreads spreads={[["outro", <OutroSpread key="o" isOwner={isOwner} />]]} />;
+/** Quick-roast spreads (design 5.6): only what likes/subs/playlists can show, then the warm-up upsell. */
+function QuickReport({ summary: s, roast, isOwner }: { summary: QuickSummary; roast: RoastOutput; isOwner: boolean }) {
+  const c = roast.captions;
+  const spreads: [string, ReactNode][] = [
+    ["numbers", <QuickNumbersSpread key="n" s={s} c={c} />],
+    ...(s.topChannels.length ? [["channels", <QuickTopChannelsSpread key="t" s={s} c={c} />] as [string, ReactNode]] : []),
+    ...(s.subscriptions.abandoned.length ? [["abandoned", <AbandonedSpread key="a" s={s} />] as [string, ReactNode]] : []),
+    ...(s.playlists.length ? [["playlists", <PlaylistsSpread key="p" s={s} />] as [string, ReactNode]] : []),
+    ...(c.contradictions ? [["contradictions", <ContradictionsSpread key="x" c={c} />] as [string, ReactNode]] : []),
+    ["warm-up", <WarmUpSpread key="w" />],
+    ["outro", <OutroSpread key="o" isOwner={isOwner} />],
+  ];
+  return <Spreads spreads={spreads} />;
 }
 
 function TakeoutReport({ summary: s, roast, isOwner }: { summary: TakeoutSummary; roast: RoastOutput; isOwner: boolean }) {
