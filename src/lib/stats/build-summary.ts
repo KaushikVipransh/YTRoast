@@ -1,10 +1,8 @@
 import type { Named, TakeoutSummary, TitleRef } from "@/lib/summary";
 import type { SearchEntry, WatchEntry } from "@/lib/takeout/types";
+import { clip } from "./clip";
 import { localDateKey, localIso, quarterKey } from "./time";
 
-const MAX_TEXT = 120;
-// Byte cap per string keeps the whole Summary under ~30 KB even for CJK/emoji-heavy histories.
-const MAX_TEXT_BYTES = 160;
 const TOP = 10;
 const MAX_ERAS = 12;
 const PER_ERA = 3;
@@ -13,30 +11,6 @@ const LATEST_NIGHT = 5;
 const THIN_DATA_BELOW = 50;
 const DAY_MS = 86_400_000;
 
-const utf8Bytes = (cp: number) => (cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4);
-
-/** Truncates to ≤120 UTF-16 units and ≤160 UTF-8 bytes, ending in "…", never splitting a code point. */
-function clip(s: string): string {
-  let units = 0;
-  let bytes = 0;
-  for (const ch of s) {
-    units += ch.length;
-    bytes += utf8Bytes(ch.codePointAt(0)!);
-  }
-  if (units <= MAX_TEXT && bytes <= MAX_TEXT_BYTES) return s;
-
-  let out = "";
-  units = 1; // room for "…"
-  bytes = 3;
-  for (const ch of s) {
-    const b = utf8Bytes(ch.codePointAt(0)!);
-    if (units + ch.length > MAX_TEXT || bytes + b > MAX_TEXT_BYTES) break;
-    out += ch;
-    units += ch.length;
-    bytes += b;
-  }
-  return out + "…";
-}
 
 function ref(w: WatchEntry): TitleRef {
   return { title: clip(w.title), channel: w.channel === null ? null : clip(w.channel), videoId: w.videoId };
