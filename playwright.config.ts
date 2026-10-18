@@ -19,6 +19,15 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: PROD ? 600_000 : 180_000,
-    env: { DATABASE_URL: "pglite://memory", ROAST_GENERATOR: "template", NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}` },
+    env: {
+      DATABASE_URL: "pglite://memory",
+      ROAST_GENERATOR: "template",
+      // Every e2e roast comes from localhost; the real 3/day limit is unit-tested.
+      ROAST_DAILY_LIMIT: "1000",
+      NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
+      // The quick path is exercised against a fake Google (e2e/quick-flow.spec.ts).
+      NEXT_PUBLIC_QUICK_PATH_ENABLED: "1",
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: "test-client",
+    },
   },
 });

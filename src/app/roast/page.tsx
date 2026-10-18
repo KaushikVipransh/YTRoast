@@ -8,6 +8,7 @@ import { Display, EvidenceCard } from "@/components/zine/bits";
 import { buttonClass } from "@/components/zine/Button";
 import { Sticker } from "@/components/zine/Sticker";
 import { PRIVACY_LINE } from "@/lib/copy";
+import { quickPathEnabled } from "@/lib/quick/config";
 
 export const metadata: Metadata = { title: "Roast me · Caught Watching" };
 
@@ -44,6 +45,19 @@ export default function RoastPage() {
             </Sticker>
           </div>
         </header>
+
+        {quickPathEnabled() && (
+          <nav aria-label="choose your roast" className="grid gap-4 sm:grid-cols-2">
+            <Link href="/roast/quick" className="block rounded-md border-[3px] border-dashed border-ink bg-butter p-4 shadow-hard">
+              <p className="label text-xl">quick roast ⚡</p>
+              <p className="text-sm">30 seconds · from your likes &amp; subs · mild-ish</p>
+            </Link>
+            <div aria-current="page" className="rounded-md border-[3px] border-marker bg-paper p-4 shadow-hard">
+              <p className="label text-xl">full roast 📼 (you&apos;re here)</p>
+              <p className="text-sm">5–10 min setup · your actual watch history · no survivors</p>
+            </div>
+          </nav>
+        )}
 
         <Track event="guide_view" />
         <Uploader />
