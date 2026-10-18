@@ -29,6 +29,11 @@ what you return:
 
 export function buildRoastPrompt(summary: Summary): string {
   const parts = ["here's their data. roast them."];
+  if (summary.source === "quick") {
+    parts.push(
+      "QUICK ROAST: this is their liked videos, subscriptions and playlists, not their watch history. there are no watch times or watch counts, so never mention what time they watched something or how many times. roast what they chose to like, who they follow but ignore (subscriptions.abandoned), their oldest subscriptions, and their playlist names. leave eras empty and use null for the clock, binge, rewatched and searches captions.",
+    );
+  }
   if (summary.thinData) {
     parts.push(
       "THIN DATA: there's almost nothing here. that IS the joke. roast them for the emptiness, the lurking, the history they turned off, whatever the tiny bit of data says about them.",
