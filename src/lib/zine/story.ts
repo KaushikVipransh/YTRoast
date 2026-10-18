@@ -53,7 +53,9 @@ export function storyContent(roast: RoastOutput, summary: Summary) {
   const estimatedHeight = estimate(roast.headline, headlineSize, lines, lineSize, personality);
 
   const top = summary.topChannels[0];
-  const stat = top ? `${top.name} · ${top.count.toLocaleString("en-US")} videos` : `${summary.totals.videos.toLocaleString("en-US")} videos`;
+  const unit = summary.source === "quick" ? "likes" : "videos";
+  const total = summary.source === "quick" ? summary.totals.likes : summary.totals.videos;
+  const stat = top ? `${top.name} · ${top.count.toLocaleString("en-US")} ${unit}` : `${total.toLocaleString("en-US")} ${unit}`;
 
   return { headline: roast.headline, lines, personality, stat, headlineSize, lineSize, estimatedHeight };
 }

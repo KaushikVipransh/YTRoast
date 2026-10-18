@@ -53,3 +53,9 @@ test("a normal roast keeps 3 lines at full size", () => {
   expect(story.lineSize).toBe(44);
   expect(story.estimatedHeight).toBeLessThanOrEqual(1420);
 });
+
+test("quick roast stat counts likes", () => {
+  const quick = JSON.parse(readFileSync(join(__dirname, "..", "fixtures", "quick-summary.json"), "utf8"));
+  expect(storyContent(base, quick).stat).toBe("MrBeast · 31 likes");
+  expect(storyContent(base, { ...quick, topChannels: [] }).stat).toBe("212 likes");
+});

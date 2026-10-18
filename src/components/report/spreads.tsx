@@ -5,7 +5,7 @@ import { Tape } from "@/components/zine/decor";
 import { Stamp } from "@/components/zine/Stamp";
 import { Sticker } from "@/components/zine/Sticker";
 import type { RoastOutput } from "@/lib/roast/schema";
-import type { Summary } from "@/lib/summary";
+import type { TakeoutSummary as Summary } from "@/lib/summary";
 import { clockBars } from "@/lib/zine/clock";
 import { thumbUrl, watchUrl } from "@/lib/zine/thumbs";
 import { seededTilt } from "@/lib/zine/tilt";

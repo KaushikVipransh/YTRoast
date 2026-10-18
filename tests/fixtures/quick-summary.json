@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "source": "quick",
+  "totals": { "likes": 212, "subscriptions": 87, "playlists": 4 },
+  "topChannels": [
+    { "name": "MrBeast", "count": 31 },
+    { "name": "Kurzgesagt – In a Nutshell", "count": 18 },
+    { "name": "Mark Rober", "count": 12 }
+  ],
+  "likedSamples": [
+    { "title": "I Spent 50 Hours Buried Alive", "channel": "MrBeast", "videoId": "9bqk6ZUsKyA" },
+    { "title": "The Egg - A Short Story", "channel": "Kurzgesagt – In a Nutshell", "videoId": "h6fcK_fRYaI" },
+    { "title": "lofi hip hop radio - beats to relax/study to", "channel": "Lofi Girl", "videoId": "jfKfPfyJRdk" }
+  ],
+  "subscriptions": {
+    "oldest": [
+      { "name": "Smosh", "since": "2012-03-04" },
+      { "name": "PewDiePie", "since": "2013-07-21" }
+    ],
+    "abandoned": ["Smosh", "Vsauce", "Crash Course"]
+  },
+  "playlists": [
+    { "title": "gym motivation 2", "count": 41, "sampleTitles": ["Eye of the Tiger", "Till I Collapse", "Lose Yourself"] },
+    { "title": "sad hours", "count": 23, "sampleTitles": ["Someone Like You", "Skinny Love"] }
+  ],
+  "thinData": false
+}

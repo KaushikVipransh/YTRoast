@@ -1,4 +1,4 @@
-import type { Named, Summary, TitleRef } from "@/lib/summary";
+import type { Named, TakeoutSummary, TitleRef } from "@/lib/summary";
 import type { SearchEntry, WatchEntry } from "@/lib/takeout/types";
 import { localDateKey, localIso, quarterKey } from "./time";
 
@@ -60,7 +60,7 @@ function ranked(map: Map<string, number>, limit: number, minCount = 1): Named[] 
 const secondsOfDay = (d: Date) => d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
 const isAfterMidnight = (d: Date) => d.getHours() < 5;
 
-export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry[]): Summary {
+export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry[]): TakeoutSummary {
   const sorted = [...watches].sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const channels = new Map<string, number>();
@@ -156,7 +156,7 @@ export function buildTakeoutSummary(watches: WatchEntry[], searches: SearchEntry
   };
 }
 
-function longestBinge(perDay: Map<string, WatchEntry[]>): Summary["longestBinge"] {
+function longestBinge(perDay: Map<string, WatchEntry[]>): TakeoutSummary["longestBinge"] {
   let best: [string, WatchEntry[]] | null = null;
   // perDay was filled in time order, so the first max found is the earliest date.
   for (const entry of perDay) if (!best || entry[1].length > best[1].length) best = entry;
@@ -165,7 +165,7 @@ function longestBinge(perDay: Map<string, WatchEntry[]>): Summary["longestBinge"
   return { date: best[0], count: best[1].length, sampleTitles: titles };
 }
 
-function summarizeSearches(searches: SearchEntry[]): Summary["searches"] {
+function summarizeSearches(searches: SearchEntry[]): TakeoutSummary["searches"] {
   if (searches.length === 0) return null;
   const counts = new Map<string, number>();
   for (const s of searches) bump(counts, s.query);

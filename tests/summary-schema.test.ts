@@ -2,14 +2,16 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import type { z } from "zod";
-import { SummarySchema, parseSummary } from "@/lib/summary-schema";
-import type { Summary } from "@/lib/summary";
+import { SummarySchema, TakeoutSummarySchema, parseSummary } from "@/lib/summary-schema";
+import type { TakeoutSummary as Summary } from "@/lib/summary";
 import { buildTakeoutSummary } from "@/lib/stats/build-summary";
 import { parseWatchJson } from "@/lib/takeout/parse-json";
 import { fixture } from "./takeout/helpers";
 
 // Compile-time: the schema's output type is assignable to Summary.
-const _typeCheck: Summary = {} as z.infer<typeof SummarySchema>;
+const _typeCheck: Summary = {} as z.infer<typeof TakeoutSummarySchema>;
+const _unionCheck: import("@/lib/summary").Summary = {} as z.infer<typeof SummarySchema>;
+void _unionCheck;
 void _typeCheck;
 
 const personaDir = join(__dirname, "..", "spike", "personas");
@@ -54,5 +56,27 @@ test("rejects non-objects", () => {
 test("rejects a summary with zero videos", () => {
   const s = clone();
   s.totals.videos = 0;
+  expect(parseSummary(s)).toBeNull();
+});
+
+// ---------- Phase 3: quick summaries ----------
+const quick = JSON.parse(readFileSync(join(__dirname, "fixtures", "quick-summary.json"), "utf8"));
+const quickClone = () => structuredClone(quick);
+
+test("a quick summary parses", () => {
+  expect(parseSummary(quick)).toEqual(quick);
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mutating a JSON fixture into invalid shapes on purpose
+test.each<[string, (s: Record<string, any>) => void]>([
+  ["unknown key", (s) => void (s.extra = 1)],
+  ["11 top channels", (s) => void (s.topChannels = Array.from({ length: 11 }, (_, i) => ({ name: `c${i}`, count: 1 })))],
+  ["16 liked samples", (s) => void (s.likedSamples = Array.from({ length: 16 }, () => ({ title: "t", channel: null, videoId: null })))],
+  ["malformed since", (s) => void (s.subscriptions.oldest = [{ name: "x", since: "March 2012" }])],
+  ["lone surrogate", (s) => void (s.playlists = [{ title: "a\ud83d", count: 1, sampleTitles: [] }])],
+  ["takeout fields on a quick summary", (s) => void (s.hours = Array(24).fill(0))],
+])("quick: rejects %s", (_, mutate) => {
+  const s = quickClone();
+  mutate(s);
   expect(parseSummary(s)).toBeNull();
 });

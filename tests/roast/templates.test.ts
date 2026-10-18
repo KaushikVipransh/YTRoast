@@ -5,7 +5,7 @@ import { RoastOutputSchema } from "@/lib/roast/schema";
 import { TEMPLATE_COUNT, generateTemplateRoast, yearsPhrase } from "@/lib/roast/templates";
 import { validateRoast } from "@/lib/roast/validate";
 import { buildTakeoutSummary } from "@/lib/stats/build-summary";
-import type { Summary } from "@/lib/summary";
+import type { TakeoutSummary as Summary } from "@/lib/summary";
 
 const personaDir = join(__dirname, "..", "..", "spike", "personas");
 const persona = (name: string): Summary => JSON.parse(readFileSync(join(personaDir, `${name}.json`), "utf8"));

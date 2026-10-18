@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Summary } from "./summary";
+import type { QuickSummary, Summary, TakeoutSummary } from "./summary";
 
 // The server's trust boundary: anything POSTed as a Summary is parsed with this before it reaches the AI or the DB.
 // Limits are a little looser than what the stats engine produces, never tighter.
@@ -15,7 +15,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const named = z.strictObject({ name: text, count });
 const titleRef = z.strictObject({ title: text, channel: text.nullable(), videoId: text.nullable() });
 
-export const SummarySchema: z.ZodType<Summary> = z.strictObject({
+export const TakeoutSummarySchema: z.ZodType<TakeoutSummary> = z.strictObject({
   version: z.literal(1),
   source: z.literal("takeout"),
   totals: z.strictObject({
@@ -56,6 +56,23 @@ export const SummarySchema: z.ZodType<Summary> = z.strictObject({
   }),
   thinData: z.boolean(),
 });
+
+export const QuickSummarySchema: z.ZodType<QuickSummary> = z.strictObject({
+  version: z.literal(1),
+  source: z.literal("quick"),
+  totals: z.strictObject({ likes: count, subscriptions: count, playlists: count }),
+  topChannels: z.array(named).max(10),
+  likedSamples: z.array(titleRef).max(15),
+  subscriptions: z.strictObject({
+    oldest: z.array(z.strictObject({ name: text, since: date })).max(5),
+    abandoned: z.array(text).max(10),
+  }),
+  playlists: z.array(z.strictObject({ title: text, count, sampleTitles: z.array(text).max(3) })).max(10),
+  thinData: z.boolean(),
+});
+
+/** Either kind of summary; anything else (or any mix of the two) is rejected. */
+export const SummarySchema: z.ZodType<Summary> = z.union([TakeoutSummarySchema, QuickSummarySchema]);
 
 export function parseSummary(input: unknown): Summary | null {
   const result = SummarySchema.safeParse(input);

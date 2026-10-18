@@ -1,14 +1,15 @@
 // Template roast (PRD F13): used when every AI provider fails. Less funny than the AI, never empty.
 // Every line quotes a real piece of evidence from the Summary so it passes the same validator as AI output.
-import type { Summary } from "@/lib/summary";
+import type { Summary, TakeoutSummary } from "@/lib/summary";
+import { generateQuickTemplateRoast } from "./quick-templates";
 import type { RoastOutput } from "./schema";
 
 type Line = { text: string; evidence: string };
 /** k picks which data item to use (0 = first), so a slot can be used twice without repeating itself. */
-type Template = (s: Summary, k: number) => Line | null | undefined | "" | false;
+type Template = (s: TakeoutSummary, k: number) => Line | null | undefined | "" | false;
 type ThinTemplate = (a: string) => Line;
-type Headline = (s: Summary) => string | null;
-type Personality = { when: (s: Summary) => boolean; label: string; description: (s: Summary) => string };
+type Headline = (s: TakeoutSummary) => string | null;
+type Personality = { when: (s: TakeoutSummary) => boolean; label: string; description: (s: TakeoutSummary) => string };
 
 // ---------- helpers ----------
 
@@ -37,7 +38,7 @@ function quarterName(period: string): string {
 
 const num = (n: number) => String(n);
 const line = (text: string, evidence: string): Line => ({ text, evidence });
-const top = (s: Summary, i: number) => s.topChannels[i];
+const top = (s: TakeoutSummary, i: number) => s.topChannels[i];
 /** "1 year", "6 years": rounded, never zero. */
 export function yearsPhrase(spanDays: number): string {
   const n = Math.max(1, Math.round(spanDays / 365));
@@ -45,7 +46,7 @@ export function yearsPhrase(spanDays: number): string {
 }
 
 /** Strings that can anchor a joke when data is thin: channels and titles, most prominent first. */
-function anchors(s: Summary): string[] {
+function anchors(s: TakeoutSummary): string[] {
   const all = [
     ...s.topChannels.map((c) => c.name),
     ...s.topRewatched.map((r) => r.title),
@@ -85,7 +86,7 @@ const TOP_CHANNEL: Template[] = [
   (s) => top(s, 2) && line(`${top(s, 2).name} made your top three. explain that to a therapist.`, top(s, 2).name),
 ];
 
-const rw = (s: Summary, k: number) => s.topRewatched[k];
+const rw = (s: TakeoutSummary, k: number) => s.topRewatched[k];
 const REWATCH: Template[] = [
   (s, k) => rw(s, k) && line(`you rewatched ${rw(s, k).title} ${rw(s, k).count} times. it ends the same way every time.`, rw(s, k).title),
   (s, k) => rw(s, k) && line(`${rw(s, k).title}, ${rw(s, k).count} times. that's not a favourite, that's a coping mechanism.`, rw(s, k).title),
@@ -95,7 +96,7 @@ const REWATCH: Template[] = [
   (s) => rw(s, 1) && line(`${rw(s, 1).title} is in your rewatch pile too. the pile is a cry for help.`, rw(s, 1).title),
 ];
 
-const night = (s: Summary, k: number) => s.samples.latestNight[k];
+const night = (s: TakeoutSummary, k: number) => s.samples.latestNight[k];
 const LATE_NIGHT: Template[] = [
   (s, k) => night(s, k) && line(`you were watching ${night(s, k).title} at ${clock(night(s, k).time)}. sleep is free, you know.`, night(s, k).title),
   (s, k) => night(s, k) && line(`${night(s, k).title} at ${clock(night(s, k).time)} is not a bedtime story, it's a symptom.`, night(s, k).title),
@@ -113,8 +114,8 @@ const BINGE: Template[] = [
   (s) => (s.longestBinge && s.longestBinge.count >= 10 ? line(`${s.longestBinge.count} videos, one day, zero regrets. that's the problem.`, num(s.longestBinge.count)) : null),
 ];
 
-const rep = (s: Summary, k: number) => s.searches?.topRepeated[k];
-const lateQ = (s: Summary, k: number) => s.searches?.lateNight[k];
+const rep = (s: TakeoutSummary, k: number) => s.searches?.topRepeated[k];
+const lateQ = (s: TakeoutSummary, k: number) => s.searches?.lateNight[k];
 const SEARCH: Template[] = [
   (s, k) => rep(s, k) && line(`you searched "${rep(s, k)!.name}" ${rep(s, k)!.count} times. the answer didn't change.`, rep(s, k)!.name),
   (s, k) => rep(s, k) && line(`"${rep(s, k)!.name}" ${rep(s, k)!.count} times. typing it again won't make it true.`, rep(s, k)!.name),
@@ -124,7 +125,7 @@ const SEARCH: Template[] = [
   (s) => rep(s, 1) && line(`"${rep(s, 1)!.name}" is in your search history. we all saw it now.`, rep(s, 1)!.name),
 ];
 
-const odd = (s: Summary, k: number) => s.samples.oneOffs[k];
+const odd = (s: TakeoutSummary, k: number) => s.samples.oneOffs[k];
 const ONE_OFF: Template[] = [
   (s, k) => odd(s, k) && line(`you watched ${odd(s, k).title} exactly once and we have so many questions.`, odd(s, k).title),
   (s, k) => odd(s, k) && line(`${odd(s, k).title}. once. never spoken of again.`, odd(s, k).title),
@@ -133,7 +134,7 @@ const ONE_OFF: Template[] = [
   (s, k) => odd(s, k) && line(`the algorithm still hasn't recovered from you clicking ${odd(s, k).title}.`, odd(s, k).title),
 ];
 
-const bigEra = (s: Summary) => [...s.eras].sort((a, b) => b.count - a.count)[0];
+const bigEra = (s: TakeoutSummary) => [...s.eras].sort((a, b) => b.count - a.count)[0];
 const ERA: Template[] = [
   (s) => bigEra(s)?.topChannels[0] && line(`${quarterName(bigEra(s).period)} was your ${bigEra(s).topChannels[0]} era and nobody is allowed to bring it up.`, bigEra(s).topChannels[0]),
   (s) => bigEra(s)?.sampleTitles[0] && line(`in ${quarterName(bigEra(s).period)} you watched ${bigEra(s).sampleTitles[0]}. character development went backwards.`, bigEra(s).sampleTitles[0]),
@@ -151,7 +152,7 @@ const THIN: ThinTemplate[] = [
   (a) => line(`a whole youtube account and the highlight is ${a}.`, a),
 ];
 
-const share = (s: Summary) => (top(s, 0) && s.totals.videos ? top(s, 0).count / s.totals.videos : 0);
+const share = (s: TakeoutSummary) => (top(s, 0) && s.totals.videos ? top(s, 0).count / s.totals.videos : 0);
 const PERSONALITIES: Personality[] = [
   {
     when: (s) => s.thinData,
@@ -212,7 +213,7 @@ function choose<T>(items: (T | null | undefined | "" | 0 | false)[], seed: numbe
   return valid.length ? valid[seed % valid.length] : null;
 }
 
-function captions(s: Summary): RoastOutput["captions"] {
+function captions(s: TakeoutSummary): RoastOutput["captions"] {
   const t0 = top(s, 0);
   const r0 = s.topRewatched[0];
   const peak = s.hours.indexOf(Math.max(...s.hours));
@@ -228,12 +229,12 @@ function captions(s: Summary): RoastOutput["captions"] {
   };
 }
 
-function eraName(era: Summary["eras"][number]): string {
+function eraName(era: TakeoutSummary["eras"][number]): string {
   const subject = era.topChannels[0] ?? era.sampleTitles[0];
   return subject ? `the ${short(subject)} era` : "the quiet era";
 }
 
-export function generateTemplateRoast(summary: Summary): RoastOutput {
+function generateTakeoutTemplateRoast(summary: TakeoutSummary): RoastOutput {
   const seed = fnv1a(JSON.stringify(summary));
   const lines: Line[] = [];
   const seen = new Set<string>();
@@ -262,4 +263,10 @@ export function generateTemplateRoast(summary: Summary): RoastOutput {
     eras: summary.eras.map((era) => ({ period: era.period, name: eraName(era) })),
     captions: captions(summary),
   };
+}
+
+
+/** The template fallback for either kind of summary. Deterministic for a given summary. */
+export function generateTemplateRoast(summary: Summary): RoastOutput {
+  return summary.source === "quick" ? generateQuickTemplateRoast(summary) : generateTakeoutTemplateRoast(summary);
 }

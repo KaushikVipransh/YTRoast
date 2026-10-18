@@ -1,11 +1,11 @@
 import { buildTakeoutSummary } from "@/lib/stats/build-summary";
-import type { Summary } from "@/lib/summary";
+import type { TakeoutSummary } from "@/lib/summary";
 import { parseTakeout } from "./index";
 import { extractTakeoutFiles } from "./extract";
 import { TakeoutError, type TakeoutErrorCode } from "./types";
 
 export type ProcessResult =
-  | { ok: true; summary: Summary; counts: { videos: number; channels: number; searches: number } }
+  | { ok: true; summary: TakeoutSummary; counts: { videos: number; channels: number; searches: number } }
   | { ok: false; code: TakeoutErrorCode | "unknown"; found: string[] };
 
 /**

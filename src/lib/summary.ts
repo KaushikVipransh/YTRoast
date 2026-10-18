@@ -5,7 +5,8 @@ export type Named = { name: string; count: number };
 
 export type TitleRef = { title: string; channel: string | null; videoId: string | null };
 
-export type Summary = {
+/** Built from a Google Takeout watch history (the full roast). */
+export type TakeoutSummary = {
   version: 1;
   source: "takeout";
   totals: {
@@ -38,3 +39,22 @@ export type Summary = {
   /** totals.videos < 50 */
   thinData: boolean;
 };
+
+/** Built in the browser from the YouTube API: likes, subscriptions and playlists (the quick roast, PRD F1). */
+export type QuickSummary = {
+  version: 1;
+  source: "quick";
+  totals: { likes: number; subscriptions: number; playlists: number };
+  /** ≤10, channels of liked videos, count desc, name asc */
+  topChannels: Named[];
+  /** ≤15, spread evenly through the likes */
+  likedSamples: TitleRef[];
+  /** oldest ≤5 (since = YYYY-MM-DD); abandoned ≤10 = subscribed channels with zero likes */
+  subscriptions: { oldest: { name: string; since: string }[]; abandoned: string[] };
+  /** ≤10 playlists, ≤3 sample titles each */
+  playlists: { title: string; count: number; sampleTitles: string[] }[];
+  /** likes + subscriptions < 20 */
+  thinData: boolean;
+};
+
+export type Summary = TakeoutSummary | QuickSummary;
